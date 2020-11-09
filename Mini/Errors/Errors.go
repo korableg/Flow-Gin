@@ -1,0 +1,37 @@
+package Errors
+
+import (
+	"encoding/json"
+	"errors"
+)
+
+var (
+	ERR_HUB_NAME_ISEMPTY       = errors.New("hub name is empty")
+	ERR_HUB_IS_ALREADY_EXISTS  = errors.New("hub is already exists")
+	ERR_NODE_NAME_ISEMPTY      = errors.New("node name is empty")
+	ERR_NODE_NOT_FOUND         = errors.New("node not found")
+	ERR_NODE_IS_ALREADY_EXISTS = errors.New("node is already exists")
+	ERR_PAGE_NOT_FOUND         = errors.New("page not found")
+	ERR_METHOD_NOT_ALLOWED     = errors.New("method not allowed")
+)
+
+type Error struct {
+	error string
+}
+
+func NewError(err error) *Error {
+	return &Error{error: err.Error()}
+}
+
+func (e *Error) Error() string {
+	return e.error
+}
+
+func (e *Error) MarshalJSON() ([]byte, error) {
+
+	errormap := make(map[string]interface{})
+	errormap["error"] = e.error
+
+	return json.Marshal(errormap)
+
+}
