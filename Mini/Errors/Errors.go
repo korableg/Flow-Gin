@@ -6,13 +6,16 @@ import (
 )
 
 var (
-	ERR_HUB_NAME_ISEMPTY       = errors.New("hub name is empty")
-	ERR_HUB_IS_ALREADY_EXISTS  = errors.New("hub is already exists")
-	ERR_NODE_NAME_ISEMPTY      = errors.New("node name is empty")
-	ERR_NODE_NOT_FOUND         = errors.New("node not found")
-	ERR_NODE_IS_ALREADY_EXISTS = errors.New("node is already exists")
-	ERR_PAGE_NOT_FOUND         = errors.New("page not found")
-	ERR_METHOD_NOT_ALLOWED     = errors.New("method not allowed")
+	ERR_HUB_NAME_ISEMPTY              = errors.New("hub name is empty")
+	ERR_HUB_IS_ALREADY_EXISTS         = errors.New("hub is already exists")
+	ERR_HUB_NAME_NOT_MATCHED_PATTERN  = errors.New("the hub name should be contain only letters, digits, ., -, _")
+	ERR_HUB_NOT_FOUND                 = errors.New("hub not found")
+	ERR_NODE_NAME_ISEMPTY             = errors.New("node name is empty")
+	ERR_NODE_NOT_FOUND                = errors.New("node not found")
+	ERR_NODE_IS_ALREADY_EXISTS        = errors.New("node is already exists")
+	ERR_NODE_NAME_NOT_MATCHED_PATTERN = errors.New("the node name should be contain only letters, digits, ., -, _")
+	ERR_PAGE_NOT_FOUND                = errors.New("page not found")
+	ERR_METHOD_NOT_ALLOWED            = errors.New("method not allowed")
 )
 
 type Error struct {

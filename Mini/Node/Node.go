@@ -2,6 +2,7 @@ package Node
 
 import (
 	"encoding/json"
+	"github.com/korableg/mini-gin/Mini/Common"
 	"github.com/korableg/mini-gin/Mini/Errors"
 	"github.com/korableg/mini-gin/Mini/Messages"
 )
@@ -16,6 +17,11 @@ func NewNode(name string) (n *Node, err error) {
 
 	if len(name) == 0 {
 		err = Errors.ERR_NODE_NAME_ISEMPTY
+		return
+	}
+
+	if !Common.NameMatchedPattern(name) {
+		err = Errors.ERR_NODE_NAME_NOT_MATCHED_PATTERN
 		return
 	}
 

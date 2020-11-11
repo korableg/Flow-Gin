@@ -3,7 +3,6 @@ package Mini
 import (
 	"github.com/korableg/mini-gin/Mini/Errors"
 	"github.com/korableg/mini-gin/Mini/Hub"
-	"github.com/korableg/mini-gin/Mini/Messages"
 	"github.com/korableg/mini-gin/Mini/Node"
 )
 
@@ -31,7 +30,7 @@ func (m *Mini) GetNode(name string) (n *Node.Node) {
 	return
 }
 
-func (m *Mini) GetAllNodes() *[]*Node.Node {
+func (m *Mini) GetAllNodes() []*Node.Node {
 	nodes := make([]*Node.Node, 0)
 
 	f := func(key, value interface{}) bool {
@@ -40,7 +39,7 @@ func (m *Mini) GetAllNodes() *[]*Node.Node {
 	}
 	m.nodes.Range(f)
 
-	return &nodes
+	return nodes
 }
 
 func (m *Mini) DeleteNode(name string) {
@@ -60,12 +59,4 @@ func (m *Mini) DeleteNode(name string) {
 
 	m.hubs.Range(f)
 
-}
-
-func (m *Mini) GetMessage(n *Node.Node) *Messages.Message {
-	return n.FrontMessage()
-}
-
-func (m *Mini) RemoveMessage(n *Node.Node) {
-	n.RemoveFrontMessage()
 }

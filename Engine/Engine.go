@@ -31,6 +31,15 @@ func init() {
 	engine.GET("/node/:name", getNode)
 	engine.POST("/node/:name", newNode)
 	engine.DELETE("/node/:name", deleteNode)
+
+	engine.GET("/hub", getAllHubs)
+	engine.GET("/hub/:name", getHub)
+	engine.POST("/hub/:name", newHub)
+	engine.PATCH("/hub/:nameHub/addnode/:nameNode", addNodeToHub)
+	engine.PATCH("/hub/:nameHub/deletenode/:nameNode", deleteNodeFromHub)
+	engine.DELETE("/hub/:name", deleteHub)
+
+	engine.POST("/node/:nameNode/message/:nameHub", sendMessage)
 	engine.GET("/node/:name/message", getMessage)
 	engine.DELETE("/node/:name/message", deleteMessage)
 
@@ -88,6 +97,99 @@ func deleteNode(c *gin.Context) {
 
 }
 
+func getAllHubs(c *gin.Context) {
+	c.JSON(http.StatusOK, mini.GetAllHubs())
+}
+
+func getHub(c *gin.Context) {
+	name := c.Params.ByName("name")
+	c.JSON(http.StatusOK, mini.GetHub(name))
+}
+
+func newHub(c *gin.Context) {
+	name := c.Params.ByName("name")
+	if n, err := mini.NewHub(name); err == nil {
+		c.JSON(http.StatusCreated, n)
+	} else {
+		c.JSON(http.StatusBadRequest, Errors.NewError(err))
+	}
+}
+
+func addNodeToHub(c *gin.Context) {
+
+	nameHub := c.Params.ByName("nameHub")
+	nameNode := c.Params.ByName("nameNode")
+
+	hub := mini.GetHub(nameHub)
+	if hub == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
+		return
+	}
+	node := mini.GetNode(nameNode)
+	if node == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		return
+	}
+
+	mini.AddNodeToHub(hub, node)
+
+	c.JSON(http.StatusOK, hub)
+
+}
+
+func deleteNodeFromHub(c *gin.Context) {
+
+	nameHub := c.Params.ByName("nameHub")
+	nameNode := c.Params.ByName("nameNode")
+
+	hub := mini.GetHub(nameHub)
+	if hub == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
+		return
+	}
+	node := mini.GetNode(nameNode)
+	if node == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		return
+	}
+
+	mini.DeleteNodeFromHub(hub, node)
+
+	c.JSON(http.StatusOK, hub)
+
+}
+
+func deleteHub(c *gin.Context) {
+
+	name := c.Params.ByName("name")
+	mini.DeleteHub(name)
+
+	c.Status(http.StatusOK)
+
+}
+
+func sendMessage(c *gin.Context) {
+
+	nameNode := c.Params.ByName("nameNode")
+	nameHub := c.Params.ByName("nameHub")
+
+	node := mini.GetHub(nameNode)
+	if node == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		return
+	}
+
+	hub := mini.GetHub(nameHub)
+	if hub == nil {
+		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
+		return
+	}
+
+	//TODO доделать
+	//mini.SendMessage(node, hub, )
+
+}
+
 func getMessage(c *gin.Context) {
 
 	name := c.Params.ByName("name")
@@ -110,8 +212,8 @@ func getMessage(c *gin.Context) {
 		return
 	}
 
-	c.Header("Message_ID", strconv.FormatInt(m.ID(), 16))
-	c.Header("Message_From", m.From())
+	c.Header("Message-ID", strconv.FormatInt(m.ID(), 16))
+	c.Header("Message-From", m.From())
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Length", strconv.Itoa(contentLength))
 
