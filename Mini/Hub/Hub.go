@@ -51,15 +51,20 @@ func (h *Hub) RangeNodes(f func(key, value interface{}) bool) {
 }
 
 func (h *Hub) MarshalJSON() ([]byte, error) {
-	return json.Marshal(h)
-}
 
-func (h *Hub) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, h); err != nil {
-		return err
+	nodes := make([]*Node.Node, 0, 20)
+
+	f := func(key, value interface{}) bool {
+		node := value.(*Node.Node)
+		nodes = append(nodes, node)
+		return true
 	}
-	if h.nodes == nil {
-		h.nodes = &sync.Map{}
-	}
-	return nil
+	h.RangeNodes(f)
+
+	hubMap := make(map[string]interface{})
+	hubMap["name"] = h.name
+	hubMap["nodes"] = nodes
+
+	return json.Marshal(hubMap)
+
 }

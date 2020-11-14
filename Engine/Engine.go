@@ -35,13 +35,12 @@ func init() {
 	engine.GET("/hub", getAllHubs)
 	engine.GET("/hub/:name", getHub)
 	engine.POST("/hub/:name", newHub)
-	engine.PATCH("/hub/:nameHub/addnode/:nameNode", addNodeToHub)
-	engine.PATCH("/hub/:nameHub/deletenode/:nameNode", deleteNodeFromHub)
+	engine.PATCH("/hub/:action/:nameHub/:nameNode", patchHub)
 	engine.DELETE("/hub/:name", deleteHub)
 
-	engine.POST("/node/:nameNode/message/:nameHub", sendMessage)
-	engine.GET("/node/:name/message", getMessage)
-	engine.DELETE("/node/:name/message", deleteMessage)
+	engine.POST("/message/:nameNode/:nameHub", sendMessage)
+	engine.GET("/message/:name", getMessage)
+	engine.DELETE("/message/:name", deleteMessage)
 
 	mini = Mini.NewMini()
 
@@ -115,10 +114,11 @@ func newHub(c *gin.Context) {
 	}
 }
 
-func addNodeToHub(c *gin.Context) {
+func patchHub(c *gin.Context) {
 
 	nameHub := c.Params.ByName("nameHub")
 	nameNode := c.Params.ByName("nameNode")
+	action := c.Params.ByName("action")
 
 	hub := mini.GetHub(nameHub)
 	if hub == nil {
@@ -131,29 +131,17 @@ func addNodeToHub(c *gin.Context) {
 		return
 	}
 
-	mini.AddNodeToHub(hub, node)
-
-	c.JSON(http.StatusOK, hub)
-
-}
-
-func deleteNodeFromHub(c *gin.Context) {
-
-	nameHub := c.Params.ByName("nameHub")
-	nameNode := c.Params.ByName("nameNode")
-
-	hub := mini.GetHub(nameHub)
-	if hub == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
-		return
+	switch action {
+	case "addnode":
+		mini.AddNodeToHub(hub, node)
+	case "deletenode":
+		mini.DeleteNodeFromHub(hub, node)
+	default:
+		{
+			c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_ACTION_NOT_ALLOWED))
+			return
+		}
 	}
-	node := mini.GetNode(nameNode)
-	if node == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
-		return
-	}
-
-	mini.DeleteNodeFromHub(hub, node)
 
 	c.JSON(http.StatusOK, hub)
 
@@ -173,7 +161,7 @@ func sendMessage(c *gin.Context) {
 	nameNode := c.Params.ByName("nameNode")
 	nameHub := c.Params.ByName("nameHub")
 
-	node := mini.GetHub(nameNode)
+	node := mini.GetNode(nameNode)
 	if node == nil {
 		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
 		return
@@ -185,8 +173,14 @@ func sendMessage(c *gin.Context) {
 		return
 	}
 
-	//TODO доделать
-	//mini.SendMessage(node, hub, )
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Errors.NewError(err))
+		return
+	}
+
+	mini.SendMessage(node, hub, data)
+	c.Status(http.StatusOK)
 
 }
 

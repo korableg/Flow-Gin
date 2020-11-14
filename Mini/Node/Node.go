@@ -65,20 +65,20 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 
 }
 
-func (n *Node) UnmarshalJSON(data []byte) error {
-
-	nodeMap := make(map[string]interface{})
-	if err := json.Unmarshal(data, &nodeMap); err != nil {
-		return err
-	}
-	if name := nodeMap["name"]; name != nil {
-		n.name = name.(string)
-	} else {
-		return Errors.ERR_NODE_NAME_ISEMPTY
-	}
-	if n.messages == nil {
-		n.messages = Messages.NewMessageQueue()
-	}
-	return nil
-
-}
+//func (n *Node) UnmarshalJSON(data []byte) error {
+//
+//	nodeMap := make(map[string]interface{})
+//	if err := json.Unmarshal(data, &nodeMap); err != nil {
+//		return err
+//	}
+//	if name := nodeMap["name"]; name != nil {
+//		n.name = name.(string)
+//	} else {
+//		return Errors.ERR_NODE_NAME_ISEMPTY
+//	}
+//	if n.messages == nil {
+//		n.messages = Messages.NewMessageQueue()
+//	}
+//	return nil
+//
+//}
