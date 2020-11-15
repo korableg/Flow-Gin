@@ -25,17 +25,16 @@ func (m *Mini) NewNode(name string) (n *Node.Node, err error) {
 
 func (m *Mini) GetNode(name string) (n *Node.Node) {
 	if value, ok := m.nodes.Load(name); ok {
-		n = value.(*Node.Node)
+		n = value
 	}
 	return
 }
 
 func (m *Mini) GetAllNodes() []*Node.Node {
-	nodes := make([]*Node.Node, 0)
+	nodes := make([]*Node.Node, 0, 20)
 
-	f := func(key, value interface{}) bool {
-		nodes = append(nodes, value.(*Node.Node))
-		return true
+	f := func(key string, value *Node.Node) {
+		nodes = append(nodes, value)
 	}
 	m.nodes.Range(f)
 
@@ -49,8 +48,6 @@ func (m *Mini) DeleteNode(name string) {
 		return
 	}
 
-	m.nodes.Delete(name)
-
 	f := func(key, value interface{}) bool {
 		hub := value.(*Hub.Hub)
 		hub.DeleteNode(node)
@@ -58,5 +55,7 @@ func (m *Mini) DeleteNode(name string) {
 	}
 
 	m.hubs.Range(f)
+
+	m.nodes.Delete(name)
 
 }

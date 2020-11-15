@@ -6,6 +6,7 @@ import (
 	"github.com/korableg/mini-gin/Config"
 	"github.com/korableg/mini-gin/Mini"
 	"github.com/korableg/mini-gin/Mini/Errors"
+	"github.com/korableg/mini-gin/Mini/goleveldb"
 	"net/http"
 	"strconv"
 )
@@ -42,7 +43,8 @@ func init() {
 	engine.GET("/message/:name", getMessage)
 	engine.DELETE("/message/:name", deleteMessage)
 
-	mini = Mini.NewMini()
+	factory := goleveldb.NewFactory(".")
+	mini = Mini.NewMini(factory)
 
 }
 
@@ -53,6 +55,10 @@ func Run() {
 			panic(err)
 		}
 	}()
+}
+
+func Close() {
+	mini.Close()
 }
 
 func defaultHeaders() gin.HandlerFunc {

@@ -11,6 +11,7 @@ import (
 func shutdown() {
 	log.Println("Shutting down mini...")
 
+	Engine.Close()
 	// TODO Save messages, nodes, routers to disk
 }
 

@@ -15,13 +15,7 @@ type Node struct {
 
 func NewNode(name string) (n *Node, err error) {
 
-	if len(name) == 0 {
-		err = Errors.ERR_NODE_NAME_ISEMPTY
-		return
-	}
-
-	if !Common.NameMatchedPattern(name) {
-		err = Errors.ERR_NODE_NAME_NOT_MATCHED_PATTERN
+	if err = checkName(name); err != nil {
 		return
 	}
 
@@ -59,26 +53,45 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 
 	nodeMap := make(map[string]interface{})
 	nodeMap["name"] = n.name
-	nodeMap["messages"] = n.Len()
 
 	return json.Marshal(nodeMap)
 
 }
 
-//func (n *Node) UnmarshalJSON(data []byte) error {
-//
-//	nodeMap := make(map[string]interface{})
-//	if err := json.Unmarshal(data, &nodeMap); err != nil {
-//		return err
-//	}
-//	if name := nodeMap["name"]; name != nil {
-//		n.name = name.(string)
-//	} else {
-//		return Errors.ERR_NODE_NAME_ISEMPTY
-//	}
-//	if n.messages == nil {
-//		n.messages = Messages.NewMessageQueue()
-//	}
-//	return nil
-//
-//}
+func (n *Node) UnmarshalJSON(data []byte) error {
+
+	nodeMap := make(map[string]interface{})
+	if err := json.Unmarshal(data, &nodeMap); err != nil {
+		return err
+	}
+
+	var nodeName string
+
+	if name := nodeMap["name"]; name != nil {
+		nodeName = name.(string)
+	}
+
+	if err := checkName(nodeName); err != nil {
+		return err
+	}
+
+	n.name = nodeName
+	n.messages = Messages.NewMessageQueue()
+
+	return nil
+
+}
+
+func checkName(name string) error {
+
+	if len(name) == 0 {
+		return Errors.ERR_NODE_NAME_ISEMPTY
+	}
+
+	if !Common.NameMatchedPattern(name) {
+		return Errors.ERR_NODE_NAME_NOT_MATCHED_PATTERN
+	}
+
+	return nil
+
+}
