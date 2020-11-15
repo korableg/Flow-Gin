@@ -9,18 +9,29 @@ type HubRepository struct {
 	db *leveldb.DB
 }
 
-func (*HubRepository) Store(key string, value *Hub.Hub) {
+func NewHubRepository(db *leveldb.DB) *HubRepository {
+	hr := HubRepository{db: db}
+	return &hr
+}
+
+func (*HubRepository) Store(key string, value *Hub.Hub) error {
+
+	return nil
 
 }
 
-func (*HubRepository) Load(key string) (*Hub.Hub, bool) {
-	return &Hub.Hub{}, true
+func (hr *HubRepository) All() ([]*Hub.Hub, error) {
+
+	nodes := make([]*Hub.Hub, 0, 20)
+
+	return nodes, nil
+
 }
 
-func (*HubRepository) Delete(key string) {
-
+func (hr *HubRepository) Delete(key string) error {
+	return nil
 }
 
-func (*HubRepository) Range(f func(key string, value *Hub.Hub) bool) {
-
+func (hr *HubRepository) Close() error {
+	return hr.Close()
 }

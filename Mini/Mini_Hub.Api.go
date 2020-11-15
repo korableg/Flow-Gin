@@ -21,7 +21,7 @@ func (m *Mini) NewHub(name string) (h *Hub.Hub, err error) {
 
 func (m *Mini) GetHub(name string) (h *Hub.Hub) {
 	if value, ok := m.hubs.Load(name); ok {
-		h = value.(*Hub.Hub)
+		h = value
 	}
 	return
 }
@@ -29,9 +29,8 @@ func (m *Mini) GetHub(name string) (h *Hub.Hub) {
 func (m *Mini) GetAllHubs() []*Hub.Hub {
 	hubs := make([]*Hub.Hub, 0)
 
-	f := func(key, value interface{}) bool {
-		hubs = append(hubs, value.(*Hub.Hub))
-		return true
+	f := func(name string, hub *Hub.Hub) {
+		hubs = append(hubs, hub)
 	}
 	m.hubs.Range(f)
 

@@ -48,10 +48,8 @@ func (m *Mini) DeleteNode(name string) {
 		return
 	}
 
-	f := func(key, value interface{}) bool {
-		hub := value.(*Hub.Hub)
+	f := func(name string, hub *Hub.Hub) {
 		hub.DeleteNode(node)
-		return true
 	}
 
 	m.hubs.Range(f)

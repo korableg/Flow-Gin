@@ -11,17 +11,8 @@ type NodeRepository struct {
 }
 
 func NewNodeRepository(db *leveldb.DB) *NodeRepository {
-
 	nr := NodeRepository{db: db}
 	return &nr
-
-}
-
-func NewHubRepository(db *leveldb.DB) *HubRepository {
-
-	nr := HubRepository{db: db}
-	return &nr
-
 }
 
 func (nr *NodeRepository) Store(key string, value *Node.Node) error {

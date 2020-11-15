@@ -35,7 +35,7 @@ func (f *Factory) NewNodeRepository() Node.NodeRepositoryDB {
 	return n
 }
 
-func (f *Factory) NewHubRepository() Hub.HubRepository {
+func (f *Factory) NewHubRepository() Hub.HubRepositoryDB {
 
 	dbPath := fmt.Sprintf("%s%c%s%c%s", f.path, filepath.Separator, "db", filepath.Separator, "hubs")
 
