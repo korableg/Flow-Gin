@@ -1,17 +1,20 @@
 package Hub
 
-import "sync"
+import (
+	"github.com/korableg/mini-gin/Mini/Node"
+	"sync"
+)
 
-type HubRepository struct {
+type Repository struct {
 	hubs *sync.Map
 	db   HubRepositoryDB
 }
 
-func NewHubRepository(f func() HubRepositoryDB) *HubRepository {
+func NewRepository(hubDB HubRepositoryDB, nodeDB Node.NodeRepositoryDB, nodes *Node.Repository) *Repository {
 
-	nr := HubRepository{
+	nr := Repository{
 		hubs: &sync.Map{},
-		db:   f(),
+		db:   hubDB,
 	}
 
 	hubs, err := nr.db.All()
@@ -33,7 +36,7 @@ type HubRepositoryDB interface {
 	Close() error
 }
 
-func (nr *HubRepository) Store(name string, value *Hub) error {
+func (nr *Repository) Store(name string, value *Hub) error {
 	if err := nr.db.Store(name, value); err != nil {
 		return err
 	}
@@ -41,14 +44,14 @@ func (nr *HubRepository) Store(name string, value *Hub) error {
 	return nil
 }
 
-func (nr *HubRepository) Load(name string) (*Hub, bool) {
+func (nr *Repository) Load(name string) (*Hub, bool) {
 	if node, ok := nr.hubs.Load(name); ok {
 		return node.(*Hub), ok
 	}
 	return nil, false
 }
 
-func (nr *HubRepository) Range(f func(name string, value *Hub)) {
+func (nr *Repository) Range(f func(name string, value *Hub)) {
 	rangeFunc := func(key, value interface{}) bool {
 		f(key.(string), value.(*Hub))
 		return true
@@ -56,7 +59,7 @@ func (nr *HubRepository) Range(f func(name string, value *Hub)) {
 	nr.hubs.Range(rangeFunc)
 }
 
-func (nr *HubRepository) Delete(name string) error {
+func (nr *Repository) Delete(name string) error {
 	if err := nr.db.Delete(name); err != nil {
 		return err
 	}
@@ -64,6 +67,6 @@ func (nr *HubRepository) Delete(name string) error {
 	return nil
 }
 
-func (nr *HubRepository) Close() error {
+func (nr *Repository) Close() error {
 	return nr.db.Close()
 }

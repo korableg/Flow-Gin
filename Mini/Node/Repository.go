@@ -4,16 +4,16 @@ import (
 	"sync"
 )
 
-type NodeRepository struct {
+type Repository struct {
 	nodes *sync.Map
 	db    NodeRepositoryDB
 }
 
-func NewNodeRepository(f func() NodeRepositoryDB) *NodeRepository {
+func NewRepository(DB NodeRepositoryDB) *Repository {
 
-	nr := NodeRepository{
+	nr := Repository{
 		nodes: &sync.Map{},
-		db:    f(),
+		db:    DB,
 	}
 
 	nodes, err := nr.db.All()
@@ -35,7 +35,7 @@ type NodeRepositoryDB interface {
 	Close() error
 }
 
-func (nr *NodeRepository) Store(name string, value *Node) error {
+func (nr *Repository) Store(name string, value *Node) error {
 	if err := nr.db.Store(name, value); err != nil {
 		return err
 	}
@@ -43,14 +43,14 @@ func (nr *NodeRepository) Store(name string, value *Node) error {
 	return nil
 }
 
-func (nr *NodeRepository) Load(name string) (*Node, bool) {
+func (nr *Repository) Load(name string) (*Node, bool) {
 	if node, ok := nr.nodes.Load(name); ok {
 		return node.(*Node), ok
 	}
 	return nil, false
 }
 
-func (nr *NodeRepository) Range(f func(name string, value *Node)) {
+func (nr *Repository) Range(f func(name string, value *Node)) {
 	rangeFunc := func(key, value interface{}) bool {
 		f(key.(string), value.(*Node))
 		return true
@@ -58,7 +58,7 @@ func (nr *NodeRepository) Range(f func(name string, value *Node)) {
 	nr.nodes.Range(rangeFunc)
 }
 
-func (nr *NodeRepository) Delete(name string) error {
+func (nr *Repository) Delete(name string) error {
 	if err := nr.db.Delete(name); err != nil {
 		return err
 	}
@@ -66,6 +66,6 @@ func (nr *NodeRepository) Delete(name string) error {
 	return nil
 }
 
-func (nr *NodeRepository) Close() error {
+func (nr *Repository) Close() error {
 	return nr.db.Close()
 }

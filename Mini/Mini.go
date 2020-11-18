@@ -6,8 +6,8 @@ import (
 )
 
 type Mini struct {
-	nodes *Node.NodeRepository
-	hubs  *Hub.HubRepository
+	nodes *Node.Repository
+	hubs  *Hub.Repository
 }
 
 type RepositoryDBFactory interface {
@@ -17,10 +17,14 @@ type RepositoryDBFactory interface {
 
 func NewMini(factory RepositoryDBFactory) *Mini {
 
+	nodeDB := factory.NewNodeRepository()
+	hubDB := factory.NewHubRepository()
+
 	m := &Mini{
-		nodes: Node.NewNodeRepository(factory.NewNodeRepository),
-		hubs:  Hub.NewHubRepository(factory.NewHubRepository),
+		nodes: Node.NewRepository(nodeDB),
 	}
+
+	m.hubs = Hub.NewRepository(hubDB, nodeDB, m.nodes)
 
 	return m
 

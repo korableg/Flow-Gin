@@ -15,13 +15,7 @@ type Hub struct {
 
 func NewHub(name string) (h *Hub, err error) {
 
-	if len(name) == 0 {
-		err = Errors.ERR_HUB_NAME_ISEMPTY
-		return
-	}
-
-	if !Common.NameMatchedPattern(name) {
-		err = Errors.ERR_HUB_NAME_NOT_MATCHED_PATTERN
+	if err = checkName(name); err != nil {
 		return
 	}
 
@@ -67,4 +61,38 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 
 	return json.Marshal(hubMap)
 
+}
+
+func (h *Hub) UnmarshalJSON(data []byte) error {
+
+	hubMap := make(map[string]interface{})
+	if err := json.Unmarshal(data, &hubMap); err != nil {
+		return err
+	}
+
+	var hubName string
+
+	if name := hubMap["name"]; name != nil {
+		hubName = name.(string)
+	}
+
+	if err := checkName(hubName); err != nil {
+		return err
+	}
+
+	h.name = hubName
+	h.nodes = &sync.Map{}
+
+	return nil
+
+}
+
+func checkName(name string) error {
+	if len(name) == 0 {
+		return Errors.ERR_HUB_NAME_ISEMPTY
+	}
+	if !Common.NameMatchedPattern(name) {
+		return Errors.ERR_HUB_NAME_NOT_MATCHED_PATTERN
+	}
+	return nil
 }

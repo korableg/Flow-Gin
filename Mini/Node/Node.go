@@ -14,18 +14,14 @@ type Node struct {
 }
 
 func NewNode(name string) (n *Node, err error) {
-
 	if err = checkName(name); err != nil {
 		return
 	}
-
 	n = &Node{
 		name:     name,
 		messages: Messages.NewMessageQueue(),
 	}
-
 	return
-
 }
 
 func (n *Node) Name() string {
@@ -83,15 +79,11 @@ func (n *Node) UnmarshalJSON(data []byte) error {
 }
 
 func checkName(name string) error {
-
 	if len(name) == 0 {
 		return Errors.ERR_NODE_NAME_ISEMPTY
 	}
-
 	if !Common.NameMatchedPattern(name) {
 		return Errors.ERR_NODE_NAME_NOT_MATCHED_PATTERN
 	}
-
 	return nil
-
 }

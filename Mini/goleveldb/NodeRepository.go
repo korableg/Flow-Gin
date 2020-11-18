@@ -22,7 +22,6 @@ func (nr *NodeRepository) Store(key string, value *Node.Node) error {
 	} else if err := nr.db.Put([]byte(key), nodeJSON, nil); err != nil {
 		return err
 	}
-
 	return nil
 
 }
