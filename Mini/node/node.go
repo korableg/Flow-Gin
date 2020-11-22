@@ -82,6 +82,9 @@ func checkName(name string) error {
 	if len(name) == 0 {
 		return errs.ERR_NODE_NAME_ISEMPTY
 	}
+	if len([]rune(name)) > 100 {
+		return errs.ERR_NODE_NAME_OVER100
+	}
 	if !cmn.NameMatchedPattern(name) {
 		return errs.ERR_NODE_NAME_NOT_MATCHED_PATTERN
 	}

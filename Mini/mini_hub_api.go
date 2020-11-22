@@ -13,8 +13,8 @@ func (m *Mini) NewHub(name string) (h *hub.Hub, err error) {
 		return
 	}
 
-	h, err = hub.NewHub(name)
-	m.hubs.Store(h)
+	h, err = hub.New(name)
+	err = m.hubs.Store(h)
 
 	return
 }

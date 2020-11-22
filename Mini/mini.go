@@ -1,18 +1,20 @@
 package Mini
 
 import (
-	"github.com/korableg/mini-gin/Mini/repository"
+	"github.com/korableg/mini-gin/Mini/hub"
+	"github.com/korableg/mini-gin/Mini/node"
+	"github.com/korableg/mini-gin/Mini/repo"
 )
 
 type Mini struct {
-	nodes *repository.NodeRepository
-	hubs  *repository.HubRepository
+	nodes *node.NodeRepository
+	hubs  *hub.HubRepository
 }
 
-func New(factory repository.DB) *Mini {
+func New(factory repo.DB) *Mini {
 
-	var nodeDB repository.NodeRepositoryDB
-	var hubDB repository.HubRepositoryDB
+	var nodeDB repo.NodeDB
+	var hubDB repo.HubDB
 
 	if factory != nil {
 		nodeDB = factory.NewNodeRepository()
@@ -20,8 +22,8 @@ func New(factory repository.DB) *Mini {
 	}
 
 	m := &Mini{
-		nodes: repository.NewNodeRepository(nodeDB),
-		hubs:  repository.NewHubRepository(hubDB),
+		nodes: node.NewNodeRepository(nodeDB),
+		hubs:  hub.NewHubRepository(hubDB),
 	}
 
 	return m

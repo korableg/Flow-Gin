@@ -1,16 +1,16 @@
-package repository
+package hub
 
 import (
-	"github.com/korableg/mini-gin/Mini/hub"
+	"github.com/korableg/mini-gin/Mini/repo"
 	"sync"
 )
 
 type HubRepository struct {
 	hubs *sync.Map
-	db   HubRepositoryDB
+	db   repo.HubDB
 }
 
-func NewHubRepository(db HubRepositoryDB) *HubRepository {
+func NewHubRepository(db repo.HubDB) *HubRepository {
 
 	hr := HubRepository{
 		hubs: new(sync.Map),
@@ -18,11 +18,15 @@ func NewHubRepository(db HubRepositoryDB) *HubRepository {
 	}
 
 	if hr.db != nil {
-		hubs, err := hr.db.All()
+		hubsRepo, err := hr.db.All()
 		if err != nil {
 			panic(err)
 		}
-		for _, hub := range hubs {
+		for _, hubRepo := range hubsRepo {
+			hub, err := New(hubRepo.GetName())
+			if err != nil {
+				panic(err)
+			}
 			hr.hubs.Store(hub.Name(), hub)
 		}
 	}
@@ -30,9 +34,11 @@ func NewHubRepository(db HubRepositoryDB) *HubRepository {
 	return &hr
 }
 
-func (hr *HubRepository) Store(hub *hub.Hub) error {
+func (hr *HubRepository) Store(hub *Hub) error {
 	if hr.db != nil {
-		if err := hr.db.Store(hub); err != nil {
+		hubRepo := new(repo.Hub)
+		hubRepo.SetName(hub.Name())
+		if err := hr.db.Store(hubRepo); err != nil {
 			return err
 		}
 	}
@@ -40,16 +46,16 @@ func (hr *HubRepository) Store(hub *hub.Hub) error {
 	return nil
 }
 
-func (hr *HubRepository) Load(name string) (*hub.Hub, bool) {
+func (hr *HubRepository) Load(name string) (*Hub, bool) {
 	if node, ok := hr.hubs.Load(name); ok {
-		return node.(*hub.Hub), ok
+		return node.(*Hub), ok
 	}
 	return nil, false
 }
 
-func (hr *HubRepository) Range(f func(hub *hub.Hub)) {
+func (hr *HubRepository) Range(f func(hub *Hub)) {
 	rangeFunc := func(key, value interface{}) bool {
-		f(value.(*hub.Hub))
+		f(value.(*Hub))
 		return true
 	}
 	hr.hubs.Range(rangeFunc)

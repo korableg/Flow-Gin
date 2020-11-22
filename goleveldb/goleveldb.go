@@ -3,11 +3,8 @@ package goleveldb
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	"github.com/korableg/mini-gin/Mini/hub"
-	"github.com/korableg/mini-gin/Mini/node"
-	"github.com/korableg/mini-gin/Mini/repository"
+	"github.com/korableg/mini-gin/Mini/repo"
 	"github.com/syndtr/goleveldb/leveldb"
 	"path/filepath"
 	"strings"
@@ -27,7 +24,7 @@ func New(path string) *GoLevelDB {
 	return &db
 }
 
-func (f *GoLevelDB) NewNodeRepository() repository.NodeRepositoryDB {
+func (f *GoLevelDB) NewNodeRepository() repo.NodeDB {
 
 	dbPath := fmt.Sprintf("%s%c%s%c%s", f.path, filepath.Separator, "db", filepath.Separator, "nodes")
 
@@ -39,7 +36,7 @@ func (f *GoLevelDB) NewNodeRepository() repository.NodeRepositoryDB {
 	return n
 }
 
-func (f *GoLevelDB) NewHubRepository() repository.HubRepositoryDB {
+func (f *GoLevelDB) NewHubRepository() repo.HubDB {
 
 	dbPath := fmt.Sprintf("%s%c%s%c%s", f.path, filepath.Separator, "db", filepath.Separator, "hubs")
 
@@ -60,36 +57,31 @@ func NewHubRepository(db *leveldb.DB) *HubRepository {
 	return &hr
 }
 
-func (hr *HubRepository) Store(hub *hub.Hub) error {
-
-	hubView := make(map[string]interface{}, 0)
-	hubView["name"] = hub.Name()
+func (hr *HubRepository) Store(hub *repo.Hub) error {
 
 	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, hubView)
+	err := binary.Write(buf, binary.LittleEndian, hub)
 	if err != nil {
 		return err
 	}
-	err = hr.db.Put([]byte(hub.Name()), buf.Bytes(), nil)
+	err = hr.db.Put([]byte(hub.GetName()), buf.Bytes(), nil)
 
 	return err
 
 }
 
-func (hr *HubRepository) All() ([]*hub.Hub, error) {
+func (hr *HubRepository) All() ([]*repo.Hub, error) {
 
-	hubs := make([]*hub.Hub, 0, 20)
+	hubs := make([]*repo.Hub, 0, 20)
 
 	iterator := hr.db.NewIterator(nil, nil)
 	for iterator.Next() {
-
-		hubView := make(map[string]interface{}, 0)
+		hub := new(repo.Hub)
 		reader := bytes.NewReader(iterator.Value())
-		err := binary.Read(reader, binary.LittleEndian, hubView)
+		err := binary.Read(reader, binary.LittleEndian, hub)
 		if err != nil {
 			return nil, err
 		}
-		hub, err := hub.NewHub(hubView["name"].(string))
 		hubs = append(hubs, hub)
 	}
 	iterator.Release()
@@ -119,35 +111,33 @@ func NewNodeRepository(db *leveldb.DB) *NodeRepository {
 	return &nr
 }
 
-func (nr *NodeRepository) Store(node *node.Node) error {
+func (nr *NodeRepository) Store(node *repo.Node) error {
 
-	if nodeJSON, err := json.Marshal(node); err != nil {
-		return err
-	} else if err := nr.db.Put([]byte(node.Name()), nodeJSON, nil); err != nil {
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.LittleEndian, node)
+	if err != nil {
 		return err
 	}
-	return nil
+	err = nr.db.Put([]byte(node.GetName()), buf.Bytes(), nil)
+
+	return err
 
 }
 
-func (nr *NodeRepository) All() ([]*node.Node, error) {
+func (nr *NodeRepository) All() ([]*repo.Node, error) {
 
-	nodes := make([]*node.Node, 0, 20)
+	nodes := make([]*repo.Node, 0, 20)
 
 	iterator := nr.db.NewIterator(nil, nil)
-
 	for iterator.Next() {
-
-		value := iterator.Value()
-		node := &node.Node{}
-		if err := json.Unmarshal(value, node); err != nil {
+		node := new(repo.Node)
+		reader := bytes.NewReader(iterator.Value())
+		err := binary.Read(reader, binary.LittleEndian, node)
+		if err != nil {
 			return nil, err
 		}
-
 		nodes = append(nodes, node)
-
 	}
-
 	iterator.Release()
 
 	if err := iterator.Error(); err != nil {

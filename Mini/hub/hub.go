@@ -13,7 +13,7 @@ type Hub struct {
 	nodes *sync.Map
 }
 
-func NewHub(name string) (h *Hub, err error) {
+func New(name string) (h *Hub, err error) {
 
 	if err = checkName(name); err != nil {
 		return
@@ -90,6 +90,9 @@ func (h *Hub) UnmarshalJSON(data []byte) error {
 func checkName(name string) error {
 	if len(name) == 0 {
 		return errs.ERR_HUB_NAME_ISEMPTY
+	}
+	if len([]rune(name)) > 100 {
+		return errs.ERR_HUB_NAME_OVER100
 	}
 	if !cmn.NameMatchedPattern(name) {
 		return errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN

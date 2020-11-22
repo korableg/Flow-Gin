@@ -1,16 +1,16 @@
-package repository
+package node
 
 import (
-	"github.com/korableg/mini-gin/Mini/node"
+	"github.com/korableg/mini-gin/Mini/repo"
 	"sync"
 )
 
 type NodeRepository struct {
 	nodes *sync.Map
-	db    NodeRepositoryDB
+	db    repo.NodeDB
 }
 
-func NewNodeRepository(DB NodeRepositoryDB) *NodeRepository {
+func NewNodeRepository(DB repo.NodeDB) *NodeRepository {
 
 	nr := NodeRepository{
 		nodes: new(sync.Map),
@@ -18,21 +18,27 @@ func NewNodeRepository(DB NodeRepositoryDB) *NodeRepository {
 	}
 
 	if nr.db != nil {
-		nodes, err := nr.db.All()
+		nodesRepo, err := nr.db.All()
 		if err != nil {
 			panic(err)
 		}
-		for _, node := range nodes {
-			nr.nodes.Store(node.Name(), node)
+		for _, nodeRepo := range nodesRepo {
+			n, err := NewNode(nodeRepo.GetName())
+			if err != nil {
+				panic(err)
+			}
+			nr.nodes.Store(n.Name(), n)
 		}
 	}
 
 	return &nr
 }
 
-func (nr *NodeRepository) Store(node *node.Node) error {
+func (nr *NodeRepository) Store(node *Node) error {
 	if nr.db != nil {
-		if err := nr.db.Store(node); err != nil {
+		nodeRepo := new(repo.Node)
+		nodeRepo.SetName(node.Name())
+		if err := nr.db.Store(nodeRepo); err != nil {
 			return err
 		}
 	}
@@ -40,16 +46,16 @@ func (nr *NodeRepository) Store(node *node.Node) error {
 	return nil
 }
 
-func (nr *NodeRepository) Load(name string) (*node.Node, bool) {
+func (nr *NodeRepository) Load(name string) (*Node, bool) {
 	if n, ok := nr.nodes.Load(name); ok {
-		return n.(*node.Node), ok
+		return n.(*Node), ok
 	}
 	return nil, false
 }
 
-func (nr *NodeRepository) Range(f func(node *node.Node)) {
+func (nr *NodeRepository) Range(f func(node *Node)) {
 	rangeFunc := func(key, value interface{}) bool {
-		f(value.(*node.Node))
+		f(value.(*Node))
 		return true
 	}
 	nr.nodes.Range(rangeFunc)
