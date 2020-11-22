@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/korableg/mini-gin/Config"
 	"github.com/korableg/mini-gin/Mini"
-	"github.com/korableg/mini-gin/Mini/Errors"
-	"github.com/korableg/mini-gin/Mini/goleveldb"
+	"github.com/korableg/mini-gin/Mini/errs"
+	"github.com/korableg/mini-gin/goleveldb"
 	"net/http"
 	"strconv"
 )
@@ -43,8 +43,8 @@ func init() {
 	engine.GET("/message/:name", getMessage)
 	engine.DELETE("/message/:name", deleteMessage)
 
-	factory := goleveldb.NewFactory(".")
-	mini = Mini.NewMini(factory)
+	factory := goleveldb.New(".")
+	mini = Mini.New(factory)
 
 }
 
@@ -68,11 +68,11 @@ func defaultHeaders() gin.HandlerFunc {
 }
 
 func pageNotFound(c *gin.Context) {
-	c.JSON(http.StatusNotFound, Errors.NewError(Errors.ERR_PAGE_NOT_FOUND))
+	c.JSON(http.StatusNotFound, errs.NewError(errs.ERR_PAGE_NOT_FOUND))
 }
 
 func methodNotAllowed(c *gin.Context) {
-	c.JSON(http.StatusMethodNotAllowed, Errors.NewError(Errors.ERR_METHOD_NOT_ALLOWED))
+	c.JSON(http.StatusMethodNotAllowed, errs.NewError(errs.ERR_METHOD_NOT_ALLOWED))
 }
 
 func getAllNodes(c *gin.Context) {
@@ -89,7 +89,7 @@ func newNode(c *gin.Context) {
 	if n, err := mini.NewNode(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
-		c.JSON(http.StatusBadRequest, Errors.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
 	}
 }
 
@@ -116,7 +116,7 @@ func newHub(c *gin.Context) {
 	if n, err := mini.NewHub(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
-		c.JSON(http.StatusBadRequest, Errors.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
 	}
 }
 
@@ -128,12 +128,12 @@ func patchHub(c *gin.Context) {
 
 	hub := mini.GetHub(nameHub)
 	if hub == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
 		return
 	}
 	node := mini.GetNode(nameNode)
 	if node == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
@@ -144,7 +144,7 @@ func patchHub(c *gin.Context) {
 		mini.DeleteNodeFromHub(hub, node)
 	default:
 		{
-			c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_ACTION_NOT_ALLOWED))
+			c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_ACTION_NOT_ALLOWED))
 			return
 		}
 	}
@@ -169,19 +169,19 @@ func sendMessage(c *gin.Context) {
 
 	node := mini.GetNode(nameNode)
 	if node == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
 	hub := mini.GetHub(nameHub)
 	if hub == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_HUB_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
 		return
 	}
 
 	data, err := c.GetRawData()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Errors.NewError(err))
+		c.JSON(http.StatusInternalServerError, errs.NewError(err))
 		return
 	}
 
@@ -195,7 +195,7 @@ func getMessage(c *gin.Context) {
 	name := c.Params.ByName("name")
 	node := mini.GetNode(name)
 	if node == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
@@ -208,7 +208,7 @@ func getMessage(c *gin.Context) {
 
 	contentLength, err := c.Writer.Write(m.Data())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Errors.NewError(err))
+		c.JSON(http.StatusInternalServerError, errs.NewError(err))
 		return
 	}
 
@@ -226,7 +226,7 @@ func deleteMessage(c *gin.Context) {
 	name := c.Params.ByName("name")
 	node := mini.GetNode(name)
 	if node == nil {
-		c.JSON(http.StatusBadRequest, Errors.NewError(Errors.ERR_NODE_NOT_FOUND))
+		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 

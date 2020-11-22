@@ -1,10 +1,10 @@
-package Hub
+package hub
 
 import (
 	"encoding/json"
-	"github.com/korableg/mini-gin/Mini/Common"
-	"github.com/korableg/mini-gin/Mini/Errors"
-	"github.com/korableg/mini-gin/Mini/Node"
+	"github.com/korableg/mini-gin/Mini/cmn"
+	"github.com/korableg/mini-gin/Mini/errs"
+	"github.com/korableg/mini-gin/Mini/node"
 	"sync"
 )
 
@@ -32,11 +32,11 @@ func (h *Hub) Name() string {
 	return h.name
 }
 
-func (h *Hub) AddNode(n *Node.Node) {
+func (h *Hub) AddNode(n *node.Node) {
 	h.nodes.Store(n.Name(), n)
 }
 
-func (h *Hub) DeleteNode(n *Node.Node) {
+func (h *Hub) DeleteNode(n *node.Node) {
 	h.nodes.Delete(n.Name())
 }
 
@@ -46,10 +46,10 @@ func (h *Hub) RangeNodes(f func(key, value interface{}) bool) {
 
 func (h *Hub) MarshalJSON() ([]byte, error) {
 
-	nodes := make([]*Node.Node, 0, 20)
+	nodes := make([]*node.Node, 0, 20)
 
 	f := func(key, value interface{}) bool {
-		node := value.(*Node.Node)
+		node := value.(*node.Node)
 		nodes = append(nodes, node)
 		return true
 	}
@@ -89,10 +89,10 @@ func (h *Hub) UnmarshalJSON(data []byte) error {
 
 func checkName(name string) error {
 	if len(name) == 0 {
-		return Errors.ERR_HUB_NAME_ISEMPTY
+		return errs.ERR_HUB_NAME_ISEMPTY
 	}
-	if !Common.NameMatchedPattern(name) {
-		return Errors.ERR_HUB_NAME_NOT_MATCHED_PATTERN
+	if !cmn.NameMatchedPattern(name) {
+		return errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN
 	}
 	return nil
 }

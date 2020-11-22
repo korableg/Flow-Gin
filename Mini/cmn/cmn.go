@@ -1,4 +1,4 @@
-package Common
+package cmn
 
 import "regexp"
 

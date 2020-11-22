@@ -1,4 +1,4 @@
-package Messages
+package msgs
 
 import (
 	"container/list"

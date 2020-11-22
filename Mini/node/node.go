@@ -1,16 +1,16 @@
-package Node
+package node
 
 import (
 	"encoding/json"
-	"github.com/korableg/mini-gin/Mini/Common"
-	"github.com/korableg/mini-gin/Mini/Errors"
-	"github.com/korableg/mini-gin/Mini/Messages"
+	"github.com/korableg/mini-gin/Mini/cmn"
+	"github.com/korableg/mini-gin/Mini/errs"
+	"github.com/korableg/mini-gin/Mini/msgs"
 )
 
 type Node struct {
 	id       string
 	name     string
-	messages *Messages.MessageQueue
+	messages *msgs.MessageQueue
 }
 
 func NewNode(name string) (n *Node, err error) {
@@ -19,7 +19,7 @@ func NewNode(name string) (n *Node, err error) {
 	}
 	n = &Node{
 		name:     name,
-		messages: Messages.NewMessageQueue(),
+		messages: msgs.NewMessageQueue(),
 	}
 	return
 }
@@ -28,11 +28,11 @@ func (n *Node) Name() string {
 	return n.name
 }
 
-func (n *Node) PushMessage(m *Messages.Message) {
+func (n *Node) PushMessage(m *msgs.Message) {
 	n.messages.Push(m)
 }
 
-func (n *Node) FrontMessage() (m *Messages.Message) {
+func (n *Node) FrontMessage() (m *msgs.Message) {
 	m = n.messages.Front()
 	return
 }
@@ -72,7 +72,7 @@ func (n *Node) UnmarshalJSON(data []byte) error {
 	}
 
 	n.name = nodeName
-	n.messages = Messages.NewMessageQueue()
+	n.messages = msgs.NewMessageQueue()
 
 	return nil
 
@@ -80,10 +80,10 @@ func (n *Node) UnmarshalJSON(data []byte) error {
 
 func checkName(name string) error {
 	if len(name) == 0 {
-		return Errors.ERR_NODE_NAME_ISEMPTY
+		return errs.ERR_NODE_NAME_ISEMPTY
 	}
-	if !Common.NameMatchedPattern(name) {
-		return Errors.ERR_NODE_NAME_NOT_MATCHED_PATTERN
+	if !cmn.NameMatchedPattern(name) {
+		return errs.ERR_NODE_NAME_NOT_MATCHED_PATTERN
 	}
 	return nil
 }
