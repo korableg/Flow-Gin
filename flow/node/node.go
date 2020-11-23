@@ -2,9 +2,9 @@ package node
 
 import (
 	"encoding/json"
-	"github.com/korableg/mini-gin/Mini/cmn"
-	"github.com/korableg/mini-gin/Mini/errs"
-	"github.com/korableg/mini-gin/Mini/msgs"
+	"github.com/korableg/mini-gin/flow/cmn"
+	"github.com/korableg/mini-gin/flow/errs"
+	"github.com/korableg/mini-gin/flow/msgs"
 )
 
 type Node struct {
@@ -51,30 +51,6 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 	nodeMap["name"] = n.name
 
 	return json.Marshal(nodeMap)
-
-}
-
-func (n *Node) UnmarshalJSON(data []byte) error {
-
-	nodeMap := make(map[string]interface{})
-	if err := json.Unmarshal(data, &nodeMap); err != nil {
-		return err
-	}
-
-	var nodeName string
-
-	if name := nodeMap["name"]; name != nil {
-		nodeName = name.(string)
-	}
-
-	if err := checkName(nodeName); err != nil {
-		return err
-	}
-
-	n.name = nodeName
-	n.messages = msgs.NewMessageQueue()
-
-	return nil
 
 }
 

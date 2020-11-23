@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/korableg/mini-gin/Mini/repo"
+	"github.com/korableg/mini-gin/flow/repo"
 	"sync"
 )
 
@@ -10,34 +10,35 @@ type NodeRepository struct {
 	db    repo.NodeDB
 }
 
-func NewNodeRepository(DB repo.NodeDB) *NodeRepository {
+func NewNodeRepository(db repo.NodeDB) *NodeRepository {
 
-	nr := NodeRepository{
-		nodes: new(sync.Map),
-		db:    DB,
+	nr := new(NodeRepository)
+	nr.nodes = new(sync.Map)
+	nr.db = db
+
+	if nr.db == nil {
+		return nr
 	}
 
-	if nr.db != nil {
-		nodesRepo, err := nr.db.All()
+	nodesRepo, err := nr.db.All()
+	if err != nil {
+		panic(err)
+	}
+	for _, nodeRepo := range nodesRepo {
+		n, err := NewNode(nodeRepo.Name)
 		if err != nil {
 			panic(err)
 		}
-		for _, nodeRepo := range nodesRepo {
-			n, err := NewNode(nodeRepo.GetName())
-			if err != nil {
-				panic(err)
-			}
-			nr.nodes.Store(n.Name(), n)
-		}
+		nr.nodes.Store(n.Name(), n)
 	}
 
-	return &nr
+	return nr
 }
 
 func (nr *NodeRepository) Store(node *Node) error {
 	if nr.db != nil {
 		nodeRepo := new(repo.Node)
-		nodeRepo.SetName(node.Name())
+		nodeRepo.Name = node.Name()
 		if err := nr.db.Store(nodeRepo); err != nil {
 			return err
 		}

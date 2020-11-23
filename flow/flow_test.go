@@ -1,12 +1,12 @@
-package Mini
+package flow
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/korableg/mini-gin/Mini/errs"
-	"github.com/korableg/mini-gin/Mini/msgs"
-	"github.com/korableg/mini-gin/Mini/node"
+	"github.com/korableg/mini-gin/flow/errs"
+	"github.com/korableg/mini-gin/flow/msgs"
+	"github.com/korableg/mini-gin/flow/node"
 	"math/rand"
 	"strconv"
 	"testing"

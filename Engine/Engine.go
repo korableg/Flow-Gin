@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/korableg/mini-gin/Config"
-	"github.com/korableg/mini-gin/Mini"
-	"github.com/korableg/mini-gin/Mini/errs"
+	fl "github.com/korableg/mini-gin/flow"
+	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/goleveldb"
 	"net/http"
 	"strconv"
 )
 
 var engine *gin.Engine
-var mini *Mini.Mini
+var flow *fl.Flow
 
 func init() {
 
@@ -44,7 +44,7 @@ func init() {
 	engine.DELETE("/message/:name", deleteMessage)
 
 	factory := goleveldb.New(".")
-	mini = Mini.New(factory)
+	flow = fl.New(factory)
 
 }
 
@@ -58,12 +58,12 @@ func Run() {
 }
 
 func Close() {
-	mini.Close()
+	flow.Close()
 }
 
 func defaultHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Server", fmt.Sprintf("Mini:%s", Config.Version()))
+		c.Header("Server", fmt.Sprintf("flow:%s", Config.Version()))
 	}
 }
 
@@ -76,17 +76,17 @@ func methodNotAllowed(c *gin.Context) {
 }
 
 func getAllNodes(c *gin.Context) {
-	c.JSON(http.StatusOK, mini.GetAllNodes())
+	c.JSON(http.StatusOK, flow.GetAllNodes())
 }
 
 func getNode(c *gin.Context) {
 	name := c.Params.ByName("name")
-	c.JSON(http.StatusOK, mini.GetNode(name))
+	c.JSON(http.StatusOK, flow.GetNode(name))
 }
 
 func newNode(c *gin.Context) {
 	name := c.Params.ByName("name")
-	if n, err := mini.NewNode(name); err == nil {
+	if n, err := flow.NewNode(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
 		c.JSON(http.StatusBadRequest, errs.NewError(err))
@@ -96,24 +96,24 @@ func newNode(c *gin.Context) {
 func deleteNode(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	mini.DeleteNode(name)
+	flow.DeleteNode(name)
 
 	c.Status(http.StatusOK)
 
 }
 
 func getAllHubs(c *gin.Context) {
-	c.JSON(http.StatusOK, mini.GetAllHubs())
+	c.JSON(http.StatusOK, flow.GetAllHubs())
 }
 
 func getHub(c *gin.Context) {
 	name := c.Params.ByName("name")
-	c.JSON(http.StatusOK, mini.GetHub(name))
+	c.JSON(http.StatusOK, flow.GetHub(name))
 }
 
 func newHub(c *gin.Context) {
 	name := c.Params.ByName("name")
-	if n, err := mini.NewHub(name); err == nil {
+	if n, err := flow.NewHub(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
 		c.JSON(http.StatusBadRequest, errs.NewError(err))
@@ -126,12 +126,12 @@ func patchHub(c *gin.Context) {
 	nameNode := c.Params.ByName("nameNode")
 	action := c.Params.ByName("action")
 
-	hub := mini.GetHub(nameHub)
+	hub := flow.GetHub(nameHub)
 	if hub == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
 		return
 	}
-	node := mini.GetNode(nameNode)
+	node := flow.GetNode(nameNode)
 	if node == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
@@ -139,9 +139,9 @@ func patchHub(c *gin.Context) {
 
 	switch action {
 	case "addnode":
-		mini.AddNodeToHub(hub, node)
+		flow.AddNodeToHub(hub, node)
 	case "deletenode":
-		mini.DeleteNodeFromHub(hub, node)
+		flow.DeleteNodeFromHub(hub, node)
 	default:
 		{
 			c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_ACTION_NOT_ALLOWED))
@@ -156,7 +156,7 @@ func patchHub(c *gin.Context) {
 func deleteHub(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	mini.DeleteHub(name)
+	flow.DeleteHub(name)
 
 	c.Status(http.StatusOK)
 
@@ -167,13 +167,13 @@ func sendMessage(c *gin.Context) {
 	nameNode := c.Params.ByName("nameNode")
 	nameHub := c.Params.ByName("nameHub")
 
-	node := mini.GetNode(nameNode)
+	node := flow.GetNode(nameNode)
 	if node == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
-	hub := mini.GetHub(nameHub)
+	hub := flow.GetHub(nameHub)
 	if hub == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
 		return
@@ -185,7 +185,7 @@ func sendMessage(c *gin.Context) {
 		return
 	}
 
-	mini.SendMessage(node, hub, data)
+	flow.SendMessage(node, hub, data)
 	c.Status(http.StatusOK)
 
 }
@@ -193,13 +193,13 @@ func sendMessage(c *gin.Context) {
 func getMessage(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	node := mini.GetNode(name)
+	node := flow.GetNode(name)
 	if node == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
-	m := mini.GetMessage(node)
+	m := flow.GetMessage(node)
 
 	if m == nil {
 		c.Status(http.StatusNoContent)
@@ -224,13 +224,13 @@ func getMessage(c *gin.Context) {
 func deleteMessage(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	node := mini.GetNode(name)
+	node := flow.GetNode(name)
 	if node == nil {
 		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
 		return
 	}
 
-	mini.RemoveMessage(node)
+	flow.RemoveMessage(node)
 
 	c.Status(http.StatusOK)
 

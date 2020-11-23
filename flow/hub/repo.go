@@ -1,7 +1,8 @@
 package hub
 
 import (
-	"github.com/korableg/mini-gin/Mini/repo"
+	"github.com/korableg/mini-gin/flow/node"
+	"github.com/korableg/mini-gin/flow/repo"
 	"sync"
 )
 
@@ -10,34 +11,40 @@ type HubRepository struct {
 	db   repo.HubDB
 }
 
-func NewHubRepository(db repo.HubDB) *HubRepository {
+func NewHubRepository(db repo.DB, nodes *node.NodeRepository) *HubRepository {
 
-	hr := HubRepository{
-		hubs: new(sync.Map),
-		db:   db,
+	hr := new(HubRepository)
+	hr.hubs = new(sync.Map)
+
+	if db == nil {
+		return hr
 	}
 
-	if hr.db != nil {
-		hubsRepo, err := hr.db.All()
+	hr.db = db.NewHubRepository()
+	hubsRepo, err := hr.db.All()
+	if err != nil {
+		panic(err)
+	}
+	for _, hubRepo := range hubsRepo {
+		hub, err := New(hubRepo.Name, db)
 		if err != nil {
 			panic(err)
 		}
-		for _, hubRepo := range hubsRepo {
-			hub, err := New(hubRepo.GetName())
-			if err != nil {
-				panic(err)
+		for _, nodeRepo := range hubRepo.Nodes {
+			if n, ok := nodes.Load(nodeRepo.Name); ok {
+				hub.AddNode(n)
 			}
-			hr.hubs.Store(hub.Name(), hub)
 		}
+		hr.hubs.Store(hub.Name(), hub)
 	}
 
-	return &hr
+	return hr
 }
 
 func (hr *HubRepository) Store(hub *Hub) error {
 	if hr.db != nil {
 		hubRepo := new(repo.Hub)
-		hubRepo.SetName(hub.Name())
+		hubRepo.Name = hub.Name()
 		if err := hr.db.Store(hubRepo); err != nil {
 			return err
 		}

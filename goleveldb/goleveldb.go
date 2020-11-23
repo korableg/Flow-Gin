@@ -1,10 +1,9 @@
 package goleveldb
 
 import (
-	"bytes"
-	"encoding/binary"
+	"encoding/json"
 	"fmt"
-	"github.com/korableg/mini-gin/Mini/repo"
+	"github.com/korableg/mini-gin/flow/repo"
 	"github.com/syndtr/goleveldb/leveldb"
 	"path/filepath"
 	"strings"
@@ -24,9 +23,13 @@ func New(path string) *GoLevelDB {
 	return &db
 }
 
-func (f *GoLevelDB) NewNodeRepository() repo.NodeDB {
+func (f *GoLevelDB) NewNodeRepository(hubName ...string) repo.NodeDB {
 
-	dbPath := fmt.Sprintf("%s%c%s%c%s", f.path, filepath.Separator, "db", filepath.Separator, "nodes")
+	path := "nodes"
+	if hubName != nil && len(hubName) > 0 {
+		path = fmt.Sprintf("%s%c%s", "nodesinhubs", filepath.Separator, hubName[0])
+	}
+	dbPath := fmt.Sprintf("%s%c%s%c%s", f.path, filepath.Separator, "db", filepath.Separator, path)
 
 	db, err := leveldb.OpenFile(dbPath, nil)
 	if err != nil {
@@ -59,12 +62,11 @@ func NewHubRepository(db *leveldb.DB) *HubRepository {
 
 func (hr *HubRepository) Store(hub *repo.Hub) error {
 
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, hub)
+	dataJSON, err := json.Marshal(hub)
 	if err != nil {
 		return err
 	}
-	err = hr.db.Put([]byte(hub.GetName()), buf.Bytes(), nil)
+	err = hr.db.Put([]byte(hub.Name), dataJSON, nil)
 
 	return err
 
@@ -77,8 +79,7 @@ func (hr *HubRepository) All() ([]*repo.Hub, error) {
 	iterator := hr.db.NewIterator(nil, nil)
 	for iterator.Next() {
 		hub := new(repo.Hub)
-		reader := bytes.NewReader(iterator.Value())
-		err := binary.Read(reader, binary.LittleEndian, hub)
+		err := json.Unmarshal(iterator.Value(), hub)
 		if err != nil {
 			return nil, err
 		}
@@ -113,12 +114,11 @@ func NewNodeRepository(db *leveldb.DB) *NodeRepository {
 
 func (nr *NodeRepository) Store(node *repo.Node) error {
 
-	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, node)
+	dataJSON, err := json.Marshal(node)
 	if err != nil {
 		return err
 	}
-	err = nr.db.Put([]byte(node.GetName()), buf.Bytes(), nil)
+	err = nr.db.Put([]byte(node.Name), dataJSON, nil)
 
 	return err
 
@@ -131,8 +131,7 @@ func (nr *NodeRepository) All() ([]*repo.Node, error) {
 	iterator := nr.db.NewIterator(nil, nil)
 	for iterator.Next() {
 		node := new(repo.Node)
-		reader := bytes.NewReader(iterator.Value())
-		err := binary.Read(reader, binary.LittleEndian, node)
+		err := json.Unmarshal(iterator.Value(), node)
 		if err != nil {
 			return nil, err
 		}

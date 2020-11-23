@@ -2,26 +2,32 @@ package hub
 
 import (
 	"encoding/json"
-	"github.com/korableg/mini-gin/Mini/cmn"
-	"github.com/korableg/mini-gin/Mini/errs"
-	"github.com/korableg/mini-gin/Mini/node"
-	"sync"
+	"github.com/korableg/mini-gin/flow/cmn"
+	"github.com/korableg/mini-gin/flow/errs"
+	"github.com/korableg/mini-gin/flow/node"
+	"github.com/korableg/mini-gin/flow/repo"
 )
 
 type Hub struct {
 	name  string
-	nodes *sync.Map
+	nodes *node.NodeRepository
 }
 
-func New(name string) (h *Hub, err error) {
+func New(name string, db repo.DB) (h *Hub, err error) {
 
 	if err = checkName(name); err != nil {
 		return
 	}
 
+	var nodeDB repo.NodeDB
+
+	if db != nil {
+		nodeDB = db.NewNodeRepository(name)
+	}
+
 	h = &Hub{
 		name:  name,
-		nodes: &sync.Map{},
+		nodes: node.NewNodeRepository(nodeDB),
 	}
 
 	return
@@ -33,14 +39,14 @@ func (h *Hub) Name() string {
 }
 
 func (h *Hub) AddNode(n *node.Node) {
-	h.nodes.Store(n.Name(), n)
+	h.nodes.Store(n)
 }
 
 func (h *Hub) DeleteNode(n *node.Node) {
 	h.nodes.Delete(n.Name())
 }
 
-func (h *Hub) RangeNodes(f func(key, value interface{}) bool) {
+func (h *Hub) RangeNodes(f func(n *node.Node)) {
 	h.nodes.Range(f)
 }
 
@@ -48,10 +54,8 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 
 	nodes := make([]*node.Node, 0, 20)
 
-	f := func(key, value interface{}) bool {
-		node := value.(*node.Node)
-		nodes = append(nodes, node)
-		return true
+	f := func(n *node.Node) {
+		nodes = append(nodes, n)
 	}
 	h.RangeNodes(f)
 
@@ -60,30 +64,6 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 	hubMap["nodes"] = nodes
 
 	return json.Marshal(hubMap)
-
-}
-
-func (h *Hub) UnmarshalJSON(data []byte) error {
-
-	hubMap := make(map[string]interface{})
-	if err := json.Unmarshal(data, &hubMap); err != nil {
-		return err
-	}
-
-	var hubName string
-
-	if name := hubMap["name"]; name != nil {
-		hubName = name.(string)
-	}
-
-	if err := checkName(hubName); err != nil {
-		return err
-	}
-
-	h.name = hubName
-	h.nodes = &sync.Map{}
-
-	return nil
 
 }
 
