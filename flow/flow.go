@@ -14,7 +14,11 @@ type Flow struct {
 
 func New(db repo.DB) *Flow {
 
-	nodeDB := db.NewNodeRepository()
+	var nodeDB repo.NodeDB
+
+	if db != nil {
+		nodeDB = db.NewNodeRepository()
+	}
 
 	f := new(Flow)
 	f.db = db

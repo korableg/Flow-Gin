@@ -13,7 +13,7 @@ type Node struct {
 	messages *msgs.MessageQueue
 }
 
-func NewNode(name string) (n *Node, err error) {
+func New(name string) (n *Node, err error) {
 	if err = checkName(name); err != nil {
 		return
 	}

@@ -1,10 +1,10 @@
 package flow
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/korableg/mini-gin/flow/errs"
+	hub2 "github.com/korableg/mini-gin/flow/hub"
 	"github.com/korableg/mini-gin/flow/msgs"
 	"github.com/korableg/mini-gin/flow/node"
 	"math/rand"
@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
-func TestMini(t *testing.T) {
+func TestFlow(t *testing.T) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	m := New(nil)
+	mockDB := new(mockDB)
+
+	m := New(mockDB)
 
 	hub, err := m.NewHub("testHub")
 	if err != nil {
@@ -100,47 +102,60 @@ func TestMini(t *testing.T) {
 
 }
 
+func TestHub(t *testing.T) {
+
+	nameHub := "TestHub1"
+	nameNode := "TestNode1"
+
+	_, err := hub2.New("   ", nil)
+	if err != errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN {
+		t.Error(err)
+	}
+	_, err = hub2.New("", nil)
+	if err != errs.ERR_HUB_NAME_ISEMPTY {
+		t.Error(err)
+	}
+	_, err = hub2.New("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", nil)
+	if err != errs.ERR_HUB_NAME_OVER100 {
+		t.Error(err)
+	}
+	hub, err := hub2.New(nameHub, new(mockDB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nameHub != hub.Name() {
+		t.Error(nameHub + " != " + hub.Name())
+	}
+
+	node, err := node.New(nameNode)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = hub.AddNode(node)
+	if err != nil {
+		t.Error(err)
+	}
+
+	hub.PushMessage(msgs.NewMessage(nameNode, nil))
+
+	_, err = json.Marshal(hub)
+
+	err = hub.DeleteNode(node)
+	if err != nil {
+		t.Error(err)
+	}
+
+}
+
 func TestNode_MarshalJSON(t *testing.T) {
 
-	n, _ := node.NewNode("Test")
+	n, _ := node.New("Test")
 
 	nodeBytes, err := json.Marshal(n)
 	if err != nil {
 		t.Error(err)
 	}
 	_ = nodeBytes
-
-}
-
-func TestNode_UnmarshalJSON(t *testing.T) {
-
-	buf := bytes.NewBuffer(nil)
-	buf.WriteString("{}")
-	n := node.Node{}
-	err := json.Unmarshal(buf.Bytes(), &n)
-	if err != errs.ERR_NODE_NAME_ISEMPTY {
-		t.Error("Error must be ERR_NODE_NAME_ISEMPTY")
-	}
-
-	buf = bytes.NewBuffer(nil)
-	buf.WriteString("{\"name\":\"Test\"}")
-	n = node.Node{}
-	json.Unmarshal(buf.Bytes(), &n)
-	if len(n.Name()) == 0 {
-		t.Error("node Name is empty")
-	}
-
-	buf = bytes.NewBuffer(nil)
-	buf.WriteString("{\"name\":\"Test\"}")
-	n = node.Node{}
-	json.Unmarshal(buf.Bytes(), &n)
-	if len(n.Name()) == 0 {
-		t.Error("node Name is empty")
-	}
-
-	buf = bytes.NewBuffer(nil)
-	buf.WriteString("{\"name\":\"Test\", \"id\":\"TestId\"}")
-	n = node.Node{}
-	json.Unmarshal(buf.Bytes(), &n)
 
 }

@@ -25,7 +25,7 @@ func NewNodeRepository(db repo.NodeDB) *NodeRepository {
 		panic(err)
 	}
 	for _, nodeRepo := range nodesRepo {
-		n, err := NewNode(nodeRepo.Name)
+		n, err := New(nodeRepo.Name)
 		if err != nil {
 			panic(err)
 		}

@@ -9,9 +9,9 @@ import (
 func (m *Flow) SendMessage(from *node.Node, h *hub.Hub, data []byte) *msgs.Message {
 
 	mes := msgs.NewMessage(from.Name(), data)
-	h.RangeNodes(func(n *node.Node) { n.PushMessage(mes) })
-
+	h.PushMessage(mes)
 	return mes
+
 }
 
 func (m *Flow) GetMessage(n *node.Node) *msgs.Message {

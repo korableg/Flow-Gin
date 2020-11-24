@@ -13,7 +13,7 @@ func (m *Flow) NewNode(name string) (n *node.Node, err error) {
 		return
 	}
 
-	n, err = node.NewNode(name)
+	n, err = node.New(name)
 	if err != nil {
 		return
 	}
