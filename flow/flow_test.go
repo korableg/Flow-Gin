@@ -42,6 +42,9 @@ func TestFlow(t *testing.T) {
 	if nodeConsumer == nil {
 		t.Fatal("node_consumer not found")
 	}
+	if nodeConsumer.Len() != 0 {
+		t.Error("message queue len error")
+	}
 	nodesCount := rand.Intn(100) + 1
 
 	for i := 0; i < nodesCount; i++ {
@@ -99,6 +102,17 @@ func TestFlow(t *testing.T) {
 
 	fmt.Printf("Nodes count %d\n", nodesCount)
 	fmt.Printf("msgs received %d\n", len(mReceived))
+
+	err = m.DeleteNode(nodeConsumer.Name())
+	if err != nil {
+		t.Error(err)
+	}
+	err = m.DeleteHub(hub.Name())
+
+	err = m.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 }
 

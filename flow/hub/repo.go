@@ -68,14 +68,21 @@ func (hr *HubRepository) Range(f func(hub *Hub)) {
 	hr.hubs.Range(rangeFunc)
 }
 
-func (hr *HubRepository) Delete(name string) error {
-	if hr.db != nil {
-		if err := hr.db.Delete(name); err != nil {
-			return err
+func (hr *HubRepository) Delete(name string) (err error) {
+
+	if hub, ok := hr.Load(name); ok {
+		if err = hub.deleteNodeDB(); err != nil {
+			return
 		}
+		if hr.db != nil {
+			if err = hr.db.Delete(name); err != nil {
+				return err
+			}
+		}
+		hr.hubs.Delete(name)
 	}
-	hr.hubs.Delete(name)
-	return nil
+	return
+
 }
 
 func (hr *HubRepository) Close() error {

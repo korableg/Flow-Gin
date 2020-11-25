@@ -41,19 +41,15 @@ func (m *Flow) GetAllNodes() []*node.Node {
 	return nodes
 }
 
-func (m *Flow) DeleteNode(name string) {
-
+func (m *Flow) DeleteNode(name string) error {
 	node := m.GetNode(name)
 	if node == nil {
-		return
+		return nil
 	}
-
 	f := func(hub *hub.Hub) {
 		hub.DeleteNode(node)
+		//TODO обработать ошибку при удалении
 	}
-
 	m.hubs.Range(f)
-
-	m.nodes.Delete(name)
-
+	return m.nodes.Delete(name)
 }

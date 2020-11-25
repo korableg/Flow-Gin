@@ -72,6 +72,18 @@ func (nr *NodeRepository) Delete(name string) error {
 	return nil
 }
 
+func (nr *NodeRepository) DeleteDB() error {
+	if nr.db == nil {
+		return nil
+	}
+	err := nr.db.DeleteDB()
+	if err != nil {
+		return err
+	}
+	nr.db = nil
+	return nil
+}
+
 func (nr *NodeRepository) Close() error {
 	if nr.db == nil {
 		return nil

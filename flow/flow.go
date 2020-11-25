@@ -33,10 +33,8 @@ func (m *Flow) Close() error {
 	if err := m.nodes.Close(); err != nil {
 		return err
 	}
-
 	if err := m.hubs.Close(); err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -52,6 +52,10 @@ func (nr *mockNodeRepository) Delete(key string) error {
 	return nil
 }
 
+func (nr *mockNodeRepository) DeleteDB() error {
+	return nil
+}
+
 func (nr *mockNodeRepository) Close() error {
 	return nil
 }

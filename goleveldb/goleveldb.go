@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/korableg/mini-gin/flow/repo"
 	"github.com/syndtr/goleveldb/leveldb"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -35,7 +36,7 @@ func (f *GoLevelDB) NewNodeRepository(hubName ...string) repo.NodeDB {
 	if err != nil {
 		panic(err)
 	}
-	n := NewNodeRepository(db)
+	n := NewNodeRepository(db, dbPath)
 	return n
 }
 
@@ -104,11 +105,12 @@ func (hr *HubRepository) Close() error {
 }
 
 type NodeRepository struct {
-	db *leveldb.DB
+	db   *leveldb.DB
+	path string
 }
 
-func NewNodeRepository(db *leveldb.DB) *NodeRepository {
-	nr := NodeRepository{db: db}
+func NewNodeRepository(db *leveldb.DB, path string) *NodeRepository {
+	nr := NodeRepository{db: db, path: path}
 	return &nr
 }
 
@@ -149,6 +151,13 @@ func (nr *NodeRepository) All() ([]*repo.Node, error) {
 
 func (nr *NodeRepository) Delete(key string) error {
 	return nr.db.Delete([]byte(key), nil)
+}
+
+func (nr *NodeRepository) DeleteDB() (err error) {
+	if err = nr.Close(); err == nil {
+		err = os.RemoveAll(nr.path)
+	}
+	return
 }
 
 func (nr *NodeRepository) Close() error {

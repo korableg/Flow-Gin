@@ -71,6 +71,23 @@ func (h *Hub) rangeNodes(f func(n *node.Node)) {
 	h.nodes.Range(f)
 }
 
+func (h *Hub) deleteAllNodes() (err error) {
+	nodes := make([]*node.Node, 20)
+	h.rangeNodes(func(n *node.Node) { nodes = append(nodes, n) })
+	for _, n := range nodes {
+		err = h.DeleteNode(n)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (h *Hub) deleteNodeDB() error {
+	err := h.nodes.DeleteDB()
+	return err
+}
+
 func checkName(name string) error {
 	if len(name) == 0 {
 		return errs.ERR_HUB_NAME_ISEMPTY

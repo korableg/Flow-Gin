@@ -9,6 +9,7 @@ type NodeDB interface {
 	Store(node *Node) error
 	All() ([]*Node, error)
 	Delete(name string) error
+	DeleteDB() error
 	Close() error
 }
 

@@ -45,6 +45,6 @@ func (m *Flow) DeleteNodeFromHub(h *hub.Hub, n *node.Node) {
 	h.DeleteNode(n)
 }
 
-func (m *Flow) DeleteHub(name string) {
-	m.hubs.Delete(name)
+func (m *Flow) DeleteHub(name string) error {
+	return m.hubs.Delete(name)
 }
