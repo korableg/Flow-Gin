@@ -49,6 +49,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 
 	nodeMap := make(map[string]interface{})
 	nodeMap["name"] = n.name
+	nodeMap["messages"] = n.Len()
 
 	return json.Marshal(nodeMap)
 

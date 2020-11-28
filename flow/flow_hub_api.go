@@ -3,7 +3,6 @@ package flow
 import (
 	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/flow/hub"
-	"github.com/korableg/mini-gin/flow/node"
 )
 
 func (m *Flow) NewHub(name string) (h *hub.Hub, err error) {
@@ -37,12 +36,30 @@ func (m *Flow) GetAllHubs() []*hub.Hub {
 	return hubs
 }
 
-func (m *Flow) AddNodeToHub(h *hub.Hub, n *node.Node) {
+func (m *Flow) AddNodeToHub(hubName, nodeName string) error {
+	h := m.GetHub(hubName)
+	if h == nil {
+		return errs.ERR_HUB_NOT_FOUND
+	}
+	n := m.GetNode(nodeName)
+	if n == nil {
+		return errs.ERR_NODE_NOT_FOUND
+	}
 	h.AddNode(n)
+	return nil
 }
 
-func (m *Flow) DeleteNodeFromHub(h *hub.Hub, n *node.Node) {
+func (m *Flow) DeleteNodeFromHub(hubName, nodeName string) error {
+	h := m.GetHub(hubName)
+	if h == nil {
+		return errs.ERR_HUB_NOT_FOUND
+	}
+	n := m.GetNode(nodeName)
+	if n == nil {
+		return errs.ERR_NODE_NOT_FOUND
+	}
 	h.DeleteNode(n)
+	return nil
 }
 
 func (m *Flow) DeleteHub(name string) error {

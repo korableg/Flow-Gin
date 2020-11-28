@@ -58,12 +58,12 @@ func Run() {
 }
 
 func Close() {
-	flow.Close()
+	//flow.Close()
 }
 
 func defaultHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Server", fmt.Sprintf("flow:%s", Config.Version()))
+		c.Header("Server", fmt.Sprintf("Flow:%s", Config.Version()))
 	}
 }
 
@@ -126,30 +126,23 @@ func patchHub(c *gin.Context) {
 	nameNode := c.Params.ByName("nameNode")
 	action := c.Params.ByName("action")
 
-	hub := flow.GetHub(nameHub)
-	if hub == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
-		return
-	}
-	node := flow.GetNode(nameNode)
-	if node == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
-		return
-	}
+	var err error
 
 	switch action {
 	case "addnode":
-		flow.AddNodeToHub(hub, node)
+		err = flow.AddNodeToHub(nameHub, nameNode)
 	case "deletenode":
-		flow.DeleteNodeFromHub(hub, node)
+		err = flow.DeleteNodeFromHub(nameHub, nameNode)
 	default:
-		{
-			c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_ACTION_NOT_ALLOWED))
-			return
-		}
+		err = errs.NewError(errs.ERR_ACTION_NOT_ALLOWED)
 	}
 
-	c.JSON(http.StatusOK, hub)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, flow.GetHub(nameHub))
 
 }
 
@@ -167,25 +160,16 @@ func sendMessage(c *gin.Context) {
 	nameNode := c.Params.ByName("nameNode")
 	nameHub := c.Params.ByName("nameHub")
 
-	node := flow.GetNode(nameNode)
-	if node == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
-		return
-	}
-
-	hub := flow.GetHub(nameHub)
-	if hub == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_HUB_NOT_FOUND))
-		return
-	}
-
 	data, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, errs.NewError(err))
 		return
 	}
 
-	flow.SendMessage(node, hub, data)
+	_, err = flow.SendMessage(nameNode, nameHub, data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
+	}
 	c.Status(http.StatusOK)
 
 }
@@ -193,14 +177,12 @@ func sendMessage(c *gin.Context) {
 func getMessage(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	node := flow.GetNode(name)
-	if node == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
+
+	m, err := flow.GetMessage(name)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
 		return
 	}
-
-	m := flow.GetMessage(node)
-
 	if m == nil {
 		c.Status(http.StatusNoContent)
 		return
@@ -224,13 +206,12 @@ func getMessage(c *gin.Context) {
 func deleteMessage(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	node := flow.GetNode(name)
-	if node == nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(errs.ERR_NODE_NOT_FOUND))
+
+	err := flow.RemoveMessage(name)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.NewError(err))
 		return
 	}
-
-	flow.RemoveMessage(node)
 
 	c.Status(http.StatusOK)
 

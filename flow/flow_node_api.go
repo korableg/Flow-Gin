@@ -32,12 +32,8 @@ func (m *Flow) GetNode(name string) (n *node.Node) {
 
 func (m *Flow) GetAllNodes() []*node.Node {
 	nodes := make([]*node.Node, 0, 20)
-
-	f := func(value *node.Node) {
-		nodes = append(nodes, value)
-	}
+	f := func(value *node.Node) { nodes = append(nodes, value) }
 	m.nodes.Range(f)
-
 	return nodes
 }
 
@@ -48,7 +44,7 @@ func (m *Flow) DeleteNode(name string) error {
 	}
 	f := func(hub *hub.Hub) {
 		hub.DeleteNode(node)
-		//TODO обработать ошибку при удалении
+		//TODO process an error when deleting
 	}
 	m.hubs.Range(f)
 	return m.nodes.Delete(name)

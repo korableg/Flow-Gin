@@ -9,15 +9,13 @@ import (
 )
 
 func shutdown() {
-	log.Println("Shutting down mini...")
-
+	log.Println("Shutting down Flow...")
 	Engine.Close()
-	// TODO Save messages, nodes, routers to disk
 }
 
 func main() {
 
-	log.Println("Starting mini...")
+	log.Println("Starting Flow...")
 
 	defer shutdown()
 

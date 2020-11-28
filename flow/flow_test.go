@@ -35,7 +35,10 @@ func TestFlow(t *testing.T) {
 	nodeProducer, _ := m.NewNode("node_producer")
 	nodeConsumer, _ := m.NewNode("node_consumer")
 
-	m.AddNodeToHub(hub, nodeConsumer)
+	err = m.AddNodeToHub(hub.Name(), nodeConsumer.Name())
+	if err != nil {
+		t.Error(err)
+	}
 	NameNodeConsumer := nodeConsumer.Name()
 	nodeConsumer = nil
 	nodeConsumer = m.GetNode(NameNodeConsumer)
@@ -49,7 +52,7 @@ func TestFlow(t *testing.T) {
 
 	for i := 0; i < nodesCount; i++ {
 		n, _ := m.NewNode("testNode" + strconv.Itoa(i))
-		m.AddNodeToHub(hub, n)
+		m.AddNodeToHub(hub.Name(), n.Name())
 	}
 
 	messageCount := rand.Intn(100) + 1
@@ -63,7 +66,8 @@ func TestFlow(t *testing.T) {
 		for i := 0; i < messageCount; i++ {
 			data := make([]byte, rand.Intn(1024*1024*10))
 			rand.Read(data)
-			mSent = append(mSent, m.SendMessage(nodeProducer, hub, data))
+			mes, _ := m.SendMessage(nodeProducer.Name(), hub.Name(), data)
+			mSent = append(mSent, mes)
 		}
 		out <- 1
 	}
@@ -71,10 +75,10 @@ func TestFlow(t *testing.T) {
 	funcReceive := func() {
 		mReceived := make([]*msgs.Message, messageCount*3, messageCount*3)
 		for i := 0; i < messageCount*3; {
-			mes := m.GetMessage(nodeConsumer)
+			mes, _ := m.GetMessage(nodeConsumer.Name())
 			if mes != nil {
 				mReceived[i] = mes
-				m.RemoveMessage(nodeConsumer)
+				m.RemoveMessage(nodeConsumer.Name())
 				i++
 			} else {
 				time.Sleep(time.Millisecond * 500)
@@ -141,12 +145,12 @@ func TestHub(t *testing.T) {
 		t.Error(nameHub + " != " + hub.Name())
 	}
 
-	node, err := node.New(nameNode)
+	n, err := node.New(nameNode)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = hub.AddNode(node)
+	err = hub.AddNode(n)
 	if err != nil {
 		t.Error(err)
 	}
@@ -155,21 +159,53 @@ func TestHub(t *testing.T) {
 
 	_, err = json.Marshal(hub)
 
-	err = hub.DeleteNode(node)
+	err = hub.DeleteNode(n)
 	if err != nil {
 		t.Error(err)
 	}
 
 }
 
-func TestNode_MarshalJSON(t *testing.T) {
+func TestNode(t *testing.T) {
 
-	n, _ := node.New("Test")
+	nameNode := "TestNode1"
 
-	nodeBytes, err := json.Marshal(n)
-	if err != nil {
+	_, err := node.New("   ")
+	if err != errs.ERR_NODE_NAME_NOT_MATCHED_PATTERN {
 		t.Error(err)
 	}
-	_ = nodeBytes
+	_, err = node.New("")
+	if err != errs.ERR_NODE_NAME_ISEMPTY {
+		t.Error(err)
+	}
+	_, err = node.New("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890")
+	if err != errs.ERR_NODE_NAME_OVER100 {
+		t.Error(err)
+	}
+	n, err := node.New(nameNode)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nameNode != n.Name() {
+		t.Error(nameNode + " != " + n.Name())
+	}
+
+	n.PushMessage(msgs.NewMessage("TestNode2", nil))
+
+	if n.Len() != 1 {
+		t.Error("count messages must be 1")
+	}
+
+	m := n.FrontMessage()
+	if m == nil {
+		t.Error("front message must be not nil")
+	}
+	n.RemoveFrontMessage()
+
+	if n.Len() != 0 {
+		t.Error("count messages must be 0")
+	}
+
+	_, err = json.Marshal(n)
 
 }
