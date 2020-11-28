@@ -1,0 +1,70 @@
+package hub
+
+import (
+	"encoding/json"
+	"github.com/korableg/mini-gin/flow/errs"
+	"github.com/korableg/mini-gin/flow/mockDB"
+	"github.com/korableg/mini-gin/flow/msgs"
+	"github.com/korableg/mini-gin/flow/node"
+	"testing"
+)
+
+func TestHub(t *testing.T) {
+
+	nameHub := "TestHub1"
+	nameNode := "TestNode1"
+
+	_, err := New("   ", nil)
+	if err != errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN {
+		t.Error(err)
+	}
+	_, err = New("", nil)
+	if err != errs.ERR_HUB_NAME_ISEMPTY {
+		t.Error(err)
+	}
+	_, err = New("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", nil)
+	if err != errs.ERR_HUB_NAME_OVER100 {
+		t.Error(err)
+	}
+	hub, err := New(nameHub, new(MockDB.MockDB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nameHub != hub.Name() {
+		t.Error(nameHub + " != " + hub.Name())
+	}
+
+	n, err := node.New(nameNode)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = hub.AddNode(n)
+	if err != nil {
+		t.Error(err)
+	}
+
+	hub.PushMessage(msgs.NewMessage(nameNode, nil))
+
+	_, err = json.Marshal(hub)
+
+	err = hub.DeleteNode(n)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = hub.AddNode(n)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = hub.deleteAllNodes()
+	if err != nil {
+		t.Error(err)
+	}
+	err = hub.deleteNodeDB()
+	if err != nil {
+		t.Error(err)
+	}
+
+}

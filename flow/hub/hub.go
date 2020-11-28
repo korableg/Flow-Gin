@@ -43,6 +43,9 @@ func (h *Hub) AddNode(n *node.Node) error {
 }
 
 func (h *Hub) DeleteNode(n *node.Node) error {
+	if n == nil {
+		return nil
+	}
 	return h.nodes.Delete(n.Name())
 }
 
@@ -72,7 +75,7 @@ func (h *Hub) rangeNodes(f func(n *node.Node)) {
 }
 
 func (h *Hub) deleteAllNodes() (err error) {
-	nodes := make([]*node.Node, 20)
+	nodes := make([]*node.Node, 0, 20)
 	h.rangeNodes(func(n *node.Node) { nodes = append(nodes, n) })
 	for _, n := range nodes {
 		err = h.DeleteNode(n)

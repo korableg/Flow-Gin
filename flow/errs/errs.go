@@ -25,7 +25,7 @@ type Error struct {
 	error string
 }
 
-func NewError(err error) *Error {
+func New(err error) *Error {
 	return &Error{error: err.Error()}
 }
 

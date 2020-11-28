@@ -1,17 +1,17 @@
-package flow
+package MockDB
 
 import (
 	"github.com/korableg/mini-gin/flow/repo"
 )
 
-type mockDB struct{}
+type MockDB struct{}
 
-func (t *mockDB) NewNodeRepository(hubName ...string) repo.NodeDB {
+func (t *MockDB) NewNodeRepository(hubName ...string) repo.NodeDB {
 	n := new(mockNodeRepository)
 	return n
 }
 
-func (t *mockDB) NewHubRepository() repo.HubDB {
+func (t *MockDB) NewHubRepository() repo.HubDB {
 	n := new(mockHubRepository)
 	return n
 }

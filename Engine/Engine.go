@@ -68,11 +68,11 @@ func defaultHeaders() gin.HandlerFunc {
 }
 
 func pageNotFound(c *gin.Context) {
-	c.JSON(http.StatusNotFound, errs.NewError(errs.ERR_PAGE_NOT_FOUND))
+	c.JSON(http.StatusNotFound, errs.New(errs.ERR_PAGE_NOT_FOUND))
 }
 
 func methodNotAllowed(c *gin.Context) {
-	c.JSON(http.StatusMethodNotAllowed, errs.NewError(errs.ERR_METHOD_NOT_ALLOWED))
+	c.JSON(http.StatusMethodNotAllowed, errs.New(errs.ERR_METHOD_NOT_ALLOWED))
 }
 
 func getAllNodes(c *gin.Context) {
@@ -89,7 +89,7 @@ func newNode(c *gin.Context) {
 	if n, err := flow.NewNode(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 	}
 }
 
@@ -116,7 +116,7 @@ func newHub(c *gin.Context) {
 	if n, err := flow.NewHub(name); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 	}
 }
 
@@ -134,11 +134,11 @@ func patchHub(c *gin.Context) {
 	case "deletenode":
 		err = flow.DeleteNodeFromHub(nameHub, nameNode)
 	default:
-		err = errs.NewError(errs.ERR_ACTION_NOT_ALLOWED)
+		err = errs.New(errs.ERR_ACTION_NOT_ALLOWED)
 	}
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 		return
 	}
 
@@ -162,13 +162,13 @@ func sendMessage(c *gin.Context) {
 
 	data, err := c.GetRawData()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.NewError(err))
+		c.JSON(http.StatusInternalServerError, errs.New(err))
 		return
 	}
 
 	_, err = flow.SendMessage(nameNode, nameHub, data)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 	}
 	c.Status(http.StatusOK)
 
@@ -180,7 +180,7 @@ func getMessage(c *gin.Context) {
 
 	m, err := flow.GetMessage(name)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 		return
 	}
 	if m == nil {
@@ -190,7 +190,7 @@ func getMessage(c *gin.Context) {
 
 	contentLength, err := c.Writer.Write(m.Data())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.NewError(err))
+		c.JSON(http.StatusInternalServerError, errs.New(err))
 		return
 	}
 
@@ -209,7 +209,7 @@ func deleteMessage(c *gin.Context) {
 
 	err := flow.RemoveMessage(name)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errs.NewError(err))
+		c.JSON(http.StatusBadRequest, errs.New(err))
 		return
 	}
 
