@@ -22,7 +22,7 @@ func main() {
 	Engine.Run()
 
 	quit := make(chan os.Signal)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	<-quit
 

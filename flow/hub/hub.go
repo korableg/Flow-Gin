@@ -14,7 +14,7 @@ type Hub struct {
 	nodes *node.NodeRepository
 }
 
-func New(name string, db repo.DB) (h *Hub, err error) {
+func New(name string, db repo.DB, nodes ...*node.NodeRepository) (h *Hub, err error) {
 
 	if err = checkName(name); err != nil {
 		return
@@ -25,10 +25,9 @@ func New(name string, db repo.DB) (h *Hub, err error) {
 		nodeDB = db.NewNodeRepository(name)
 	}
 
-	h = &Hub{
-		name:  name,
-		nodes: node.NewNodeRepository(nodeDB),
-	}
+	h = new(Hub)
+	h.name = name
+	h.nodes = node.NewNodeRepository(nodeDB, nodes...)
 
 	return
 
@@ -49,16 +48,17 @@ func (h *Hub) DeleteNode(n *node.Node) error {
 	return h.nodes.Delete(n.Name())
 }
 
-func (h *Hub) PushMessage(m *msgs.Message) {
-	h.rangeNodes(func(n *node.Node) { n.PushMessage(m) })
+func (h *Hub) PushMessage(m *msgs.Message) error {
+	return h.rangeNodes(func(n *node.Node) error { return n.PushMessage(m) })
 }
 
 func (h *Hub) MarshalJSON() ([]byte, error) {
 
 	nodes := make([]*node.Node, 0, 20)
 
-	f := func(n *node.Node) {
+	f := func(n *node.Node) error {
 		nodes = append(nodes, n)
+		return nil
 	}
 	h.rangeNodes(f)
 
@@ -70,13 +70,13 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 
 }
 
-func (h *Hub) rangeNodes(f func(n *node.Node)) {
-	h.nodes.Range(f)
+func (h *Hub) rangeNodes(f func(n *node.Node) error) error {
+	return h.nodes.Range(f)
 }
 
 func (h *Hub) deleteAllNodes() (err error) {
 	nodes := make([]*node.Node, 0, 20)
-	h.rangeNodes(func(n *node.Node) { nodes = append(nodes, n) })
+	h.rangeNodes(func(n *node.Node) error { nodes = append(nodes, n); return nil })
 	for _, n := range nodes {
 		err = h.DeleteNode(n)
 		if err != nil {

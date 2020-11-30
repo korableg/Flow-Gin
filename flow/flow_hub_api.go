@@ -26,10 +26,11 @@ func (m *Flow) GetHub(name string) (h *hub.Hub) {
 }
 
 func (m *Flow) GetAllHubs() []*hub.Hub {
-	hubs := make([]*hub.Hub, 0)
+	hubs := make([]*hub.Hub, 0, 20)
 
-	f := func(hub *hub.Hub) {
+	f := func(hub *hub.Hub) error {
 		hubs = append(hubs, hub)
+		return nil
 	}
 	m.hubs.Range(f)
 

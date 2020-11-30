@@ -2,8 +2,9 @@ package flow
 
 import (
 	"fmt"
-	mockDB2 "github.com/korableg/mini-gin/flow/mockDB"
+	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/flow/msgs"
+	mockDB2 "github.com/korableg/mini-gin/flow/repo/mockDB"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -22,6 +23,10 @@ func TestFlow(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	_, err = m.NewHub("testHub")
+	if err != errs.ERR_HUB_IS_ALREADY_EXISTS {
+		t.Error(err)
+	}
 
 	hub = nil
 	hub = m.GetHub("testHub")
@@ -29,8 +34,8 @@ func TestFlow(t *testing.T) {
 		t.Fatal("Err get hub")
 	}
 
-	nodeProducer, _ := m.NewNode("node_producer")
-	nodeConsumer, _ := m.NewNode("node_consumer")
+	nodeProducer, _ := m.NewNode("node_producer", true)
+	nodeConsumer, _ := m.NewNode("node_consumer", true)
 
 	err = m.AddNodeToHub(hub.Name(), nodeConsumer.Name())
 	if err != nil {
@@ -42,13 +47,16 @@ func TestFlow(t *testing.T) {
 	if nodeConsumer == nil {
 		t.Fatal("node_consumer not found")
 	}
-	if nodeConsumer.Len() != 0 {
+	if nodeConsumer.Len() != 4 {
 		t.Error("message queue len error")
+	}
+	for nodeConsumer.Len() > 0 {
+		nodeConsumer.RemoveFrontMessage()
 	}
 	nodesCount := rand.Intn(100) + 1
 
 	for i := 0; i < nodesCount; i++ {
-		n, _ := m.NewNode("testNode" + strconv.Itoa(i))
+		n, _ := m.NewNode("testNode"+strconv.Itoa(i), true)
 		m.AddNodeToHub(hub.Name(), n.Name())
 	}
 
@@ -104,10 +112,41 @@ func TestFlow(t *testing.T) {
 	fmt.Printf("Nodes count %d\n", nodesCount)
 	fmt.Printf("msgs received %d\n", len(mReceived))
 
+	err = m.AddNodeToHub(hub.Name(), "NodeNotFound")
+	if err != errs.ERR_NODE_NOT_FOUND {
+		t.Error("must be error ERR_NODE_NOT_FOUND")
+	}
+
+	err = m.AddNodeToHub("HubNotFound", nodeConsumer.Name())
+	if err != errs.ERR_HUB_NOT_FOUND {
+		t.Error("must be error ERR_HUB_NOT_FOUND")
+	}
+
+	err = m.DeleteNodeFromHub(hub.Name(), "NodeNotFound")
+	if err != errs.ERR_NODE_NOT_FOUND {
+		t.Error("must be error ERR_NODE_NOT_FOUND")
+	}
+
+	err = m.DeleteNodeFromHub("HubNotFound", nodeConsumer.Name())
+	if err != errs.ERR_HUB_NOT_FOUND {
+		t.Error("must be error ERR_HUB_NOT_FOUND")
+	}
+
+	err = m.DeleteNodeFromHub(hub.Name(), nodeConsumer.Name())
+	if err != nil {
+		t.Error(err)
+	}
+
 	err = m.DeleteNode(nodeConsumer.Name())
 	if err != nil {
 		t.Error(err)
 	}
+
+	hubs := m.GetAllHubs()
+	if len(hubs) != 2 {
+		t.Errorf("hubs len have %d, must 2", len(hubs))
+	}
+
 	err = m.DeleteHub(hub.Name())
 
 	err = m.Close()

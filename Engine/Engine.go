@@ -1,12 +1,13 @@
 package Engine
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/korableg/mini-gin/Config"
 	fl "github.com/korableg/mini-gin/flow"
 	"github.com/korableg/mini-gin/flow/errs"
-	"github.com/korableg/mini-gin/goleveldb"
+	"github.com/korableg/mini-gin/flow/leveldb"
 	"net/http"
 	"strconv"
 )
@@ -43,7 +44,7 @@ func init() {
 	engine.GET("/message/:name", getMessage)
 	engine.DELETE("/message/:name", deleteMessage)
 
-	factory := goleveldb.New(".")
+	factory := leveldb.New(".")
 	flow = fl.New(factory)
 
 }
@@ -58,7 +59,7 @@ func Run() {
 }
 
 func Close() {
-	//flow.Close()
+	flow.Close()
 }
 
 func defaultHeaders() gin.HandlerFunc {
@@ -72,7 +73,7 @@ func pageNotFound(c *gin.Context) {
 }
 
 func methodNotAllowed(c *gin.Context) {
-	c.JSON(http.StatusMethodNotAllowed, errs.New(errs.ERR_METHOD_NOT_ALLOWED))
+	c.JSON(http.StatusMethodNotAllowed, errs.New(errors.New("method is not allowed")))
 }
 
 func getAllNodes(c *gin.Context) {
@@ -85,8 +86,11 @@ func getNode(c *gin.Context) {
 }
 
 func newNode(c *gin.Context) {
+
 	name := c.Params.ByName("name")
-	if n, err := flow.NewNode(name); err == nil {
+	careful := c.Query("careful") == "true"
+
+	if n, err := flow.NewNode(name, careful); err == nil {
 		c.JSON(http.StatusCreated, n)
 	} else {
 		c.JSON(http.StatusBadRequest, errs.New(err))
@@ -134,7 +138,7 @@ func patchHub(c *gin.Context) {
 	case "deletenode":
 		err = flow.DeleteNodeFromHub(nameHub, nameNode)
 	default:
-		err = errs.New(errs.ERR_ACTION_NOT_ALLOWED)
+		err = errs.New(errors.New("action not allowed"))
 	}
 
 	if err != nil {

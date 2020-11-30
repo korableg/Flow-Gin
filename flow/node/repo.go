@@ -10,7 +10,7 @@ type NodeRepository struct {
 	db    repo.NodeDB
 }
 
-func NewNodeRepository(db repo.NodeDB) *NodeRepository {
+func NewNodeRepository(db repo.NodeDB, nodeTmplts ...*NodeRepository) *NodeRepository {
 
 	nr := new(NodeRepository)
 	nr.nodes = new(sync.Map)
@@ -20,15 +20,27 @@ func NewNodeRepository(db repo.NodeDB) *NodeRepository {
 		return nr
 	}
 
+	var nodesTmplt *NodeRepository
+	if nodeTmplts != nil && len(nodeTmplts) > 0 {
+		nodesTmplt = nodeTmplts[0]
+	}
 	nodesRepo, err := nr.db.All()
 	if err != nil {
 		panic(err)
 	}
 	for _, nodeRepo := range nodesRepo {
-		n, err := New(nodeRepo.Name)
-		if err != nil {
-			panic(err)
+
+		var n *Node
+		if nodesTmplt != nil {
+			n, _ = nodesTmplt.Load(nodeRepo.Name)
 		}
+		if n == nil {
+			n, err = New(nodeRepo.Name, nodeRepo.Careful, db.Parent())
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		nr.nodes.Store(n.Name(), n)
 	}
 
@@ -39,6 +51,7 @@ func (nr *NodeRepository) Store(node *Node) error {
 	if nr.db != nil {
 		nodeRepo := new(repo.Node)
 		nodeRepo.Name = node.Name()
+		nodeRepo.Careful = node.IsCareful()
 		if err := nr.db.Store(nodeRepo); err != nil {
 			return err
 		}
@@ -54,12 +67,17 @@ func (nr *NodeRepository) Load(name string) (*Node, bool) {
 	return nil, false
 }
 
-func (nr *NodeRepository) Range(f func(node *Node)) {
+func (nr *NodeRepository) Range(f func(node *Node) error) error {
+	var err error
 	rangeFunc := func(key, value interface{}) bool {
-		f(value.(*Node))
+		err = f(value.(*Node))
+		if err != nil {
+			return false
+		}
 		return true
 	}
 	nr.nodes.Range(rangeFunc)
+	return err
 }
 
 func (nr *NodeRepository) Delete(name string) error {
@@ -84,9 +102,27 @@ func (nr *NodeRepository) DeleteDB() error {
 	return nil
 }
 
-func (nr *NodeRepository) Close() error {
+func (nr *NodeRepository) Close() (err error) {
 	if nr.db == nil {
+		return
+	}
+
+	wg := new(sync.WaitGroup)
+
+	f := func(n *Node) error {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			n.messages.Close()
+		}()
 		return nil
 	}
-	return nr.db.Close()
+
+	nr.Range(f)
+
+	err = nr.db.Close()
+
+	wg.Wait()
+
+	return
 }

@@ -26,14 +26,9 @@ func NewHubRepository(db repo.DB, nodes *node.NodeRepository) *HubRepository {
 		panic(err)
 	}
 	for _, hubRepo := range hubsRepo {
-		hub, err := New(hubRepo.Name, db)
+		hub, err := New(hubRepo.Name, db, nodes)
 		if err != nil {
 			panic(err)
-		}
-		for _, nodeRepo := range hubRepo.Nodes {
-			if n, ok := nodes.Load(nodeRepo.Name); ok {
-				hub.AddNode(n)
-			}
 		}
 		hr.hubs.Store(hub.Name(), hub)
 	}
@@ -60,12 +55,17 @@ func (hr *HubRepository) Load(name string) (*Hub, bool) {
 	return nil, false
 }
 
-func (hr *HubRepository) Range(f func(hub *Hub)) {
+func (hr *HubRepository) Range(f func(hub *Hub) error) error {
+	var err error
 	rangeFunc := func(key, value interface{}) bool {
-		f(value.(*Hub))
+		err = f(value.(*Hub))
+		if err != nil {
+			return false
+		}
 		return true
 	}
 	hr.hubs.Range(rangeFunc)
+	return err
 }
 
 func (hr *HubRepository) Delete(name string) (err error) {

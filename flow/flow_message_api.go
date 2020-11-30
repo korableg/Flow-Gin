@@ -34,6 +34,5 @@ func (m *Flow) RemoveMessage(nodeName string) error {
 	if n == nil {
 		return errs.ERR_NODE_NOT_FOUND
 	}
-	n.RemoveFrontMessage()
-	return nil
+	return n.RemoveFrontMessage()
 }

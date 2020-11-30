@@ -5,22 +5,36 @@ import (
 	"github.com/korableg/mini-gin/flow/cmn"
 	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/flow/msgs"
+	"github.com/korableg/mini-gin/flow/repo"
 )
 
 type Node struct {
-	id       string
 	name     string
 	messages *msgs.MessageQueue
 }
 
-func New(name string) (n *Node, err error) {
+func New(name string, careful bool, db repo.DB) (n *Node, err error) {
 	if err = checkName(name); err != nil {
 		return
 	}
-	n = &Node{
-		name:     name,
-		messages: msgs.NewMessageQueue(),
+
+	var mqdb repo.MQDB
+	if db != nil {
+		mqdb = db.NewMQRepository(name)
+		if err != nil {
+			return
+		}
 	}
+
+	messages, err := msgs.NewMessageQueue(mqdb, careful)
+	if err != nil {
+		return
+	}
+
+	n = new(Node)
+	n.name = name
+	n.messages = messages
+
 	return
 }
 
@@ -28,27 +42,35 @@ func (n *Node) Name() string {
 	return n.name
 }
 
-func (n *Node) PushMessage(m *msgs.Message) {
-	n.messages.Push(m)
+func (n *Node) IsCareful() bool {
+	return n.messages.IsCareful()
 }
 
-func (n *Node) FrontMessage() (m *msgs.Message) {
-	m = n.messages.Front()
-	return
+func (n *Node) PushMessage(m *msgs.Message) error {
+	return n.messages.Push(m)
 }
 
-func (n *Node) RemoveFrontMessage() {
-	n.messages.RemoveFront()
+func (n *Node) FrontMessage() *msgs.Message {
+	return n.messages.Front()
+}
+
+func (n *Node) RemoveFrontMessage() error {
+	return n.messages.RemoveFront()
 }
 
 func (n *Node) Len() int {
 	return n.messages.Len()
 }
 
+func (n *Node) DeleteMessageDB() error {
+	return n.messages.DeleteDB()
+}
+
 func (n *Node) MarshalJSON() ([]byte, error) {
 
 	nodeMap := make(map[string]interface{})
-	nodeMap["name"] = n.name
+	nodeMap["name"] = n.Name()
+	nodeMap["careful"] = n.IsCareful()
 	nodeMap["messages"] = n.Len()
 
 	return json.Marshal(nodeMap)

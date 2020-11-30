@@ -3,9 +3,9 @@ package hub
 import (
 	"encoding/json"
 	"github.com/korableg/mini-gin/flow/errs"
-	"github.com/korableg/mini-gin/flow/mockDB"
 	"github.com/korableg/mini-gin/flow/msgs"
 	"github.com/korableg/mini-gin/flow/node"
+	"github.com/korableg/mini-gin/flow/repo/mockDB"
 	"testing"
 )
 
@@ -13,6 +13,8 @@ func TestHub(t *testing.T) {
 
 	nameHub := "TestHub1"
 	nameNode := "TestNode1"
+
+	db := new(MockDB.MockDB)
 
 	_, err := New("   ", nil)
 	if err != errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN {
@@ -26,7 +28,7 @@ func TestHub(t *testing.T) {
 	if err != errs.ERR_HUB_NAME_OVER100 {
 		t.Error(err)
 	}
-	hub, err := New(nameHub, new(MockDB.MockDB))
+	hub, err := New(nameHub, db)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +36,7 @@ func TestHub(t *testing.T) {
 		t.Error(nameHub + " != " + hub.Name())
 	}
 
-	n, err := node.New(nameNode)
+	n, err := node.New(nameNode, true, db)
 	if err != nil {
 		t.Fatal(err)
 	}

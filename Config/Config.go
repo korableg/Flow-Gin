@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-const filename = "config.yaml"
+const filename = "config.yml"
 
 var instance *Config
 

@@ -17,8 +17,6 @@ var (
 	ERR_NODE_IS_ALREADY_EXISTS        = errors.New("node is already exists")
 	ERR_NODE_NAME_NOT_MATCHED_PATTERN = errors.New("the node name should be contain only letters, digits, ., -, _")
 	ERR_PAGE_NOT_FOUND                = errors.New("page not found")
-	ERR_METHOD_NOT_ALLOWED            = errors.New("method not allowed")
-	ERR_ACTION_NOT_ALLOWED            = errors.New("action not allowed")
 )
 
 type Error struct {
