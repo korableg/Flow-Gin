@@ -9,7 +9,7 @@ import (
 func (m *Flow) NewNode(name string, careful bool) (n *node.Node, err error) {
 
 	if nodeExists := m.GetNode(name); nodeExists != nil {
-		err = errs.ERR_NODE_IS_ALREADY_EXISTS
+		err = errs.ErrNodeIsAlreadyExists
 		return
 	}
 

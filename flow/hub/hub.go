@@ -11,10 +11,10 @@ import (
 
 type Hub struct {
 	name  string
-	nodes *node.NodeRepository
+	nodes *node.Repository
 }
 
-func New(name string, db repo.DB, nodes ...*node.NodeRepository) (h *Hub, err error) {
+func New(name string, db repo.DB, nodes ...*node.Repository) (h *Hub, err error) {
 
 	if err = checkName(name); err != nil {
 		return
@@ -49,18 +49,15 @@ func (h *Hub) DeleteNode(n *node.Node) error {
 }
 
 func (h *Hub) PushMessage(m *msgs.Message) error {
-	return h.rangeNodes(func(n *node.Node) error { return n.PushMessage(m) })
+	return h.nodes.Range(func(n *node.Node) error { return n.PushMessage(m) })
 }
 
 func (h *Hub) MarshalJSON() ([]byte, error) {
 
-	nodes := make([]*node.Node, 0, 20)
-
-	f := func(n *node.Node) error {
-		nodes = append(nodes, n)
-		return nil
+	nodes, err := h.getSliceOfNodes()
+	if err != nil {
+		return nil, err
 	}
-	h.rangeNodes(f)
 
 	hubMap := make(map[string]interface{})
 	hubMap["name"] = h.name
@@ -70,20 +67,36 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 
 }
 
-func (h *Hub) rangeNodes(f func(n *node.Node) error) error {
-	return h.nodes.Range(f)
+func (h *Hub) getSliceOfNodes() ([]*node.Node, error) {
+
+	nodes := make([]*node.Node, 0, 20)
+
+	f := func(n *node.Node) error {
+		nodes = append(nodes, n)
+		return nil
+	}
+	if err := h.nodes.Range(f); err != nil {
+		return nil, err
+	}
+
+	return nodes, nil
+
 }
 
-func (h *Hub) deleteAllNodes() (err error) {
-	nodes := make([]*node.Node, 0, 20)
-	h.rangeNodes(func(n *node.Node) error { nodes = append(nodes, n); return nil })
+func (h *Hub) deleteAllNodes() error {
+
+	nodes, err := h.getSliceOfNodes()
+	if err != nil {
+		return err
+	}
+
 	for _, n := range nodes {
-		err = h.DeleteNode(n)
-		if err != nil {
-			return
+		if err := h.DeleteNode(n); err != nil {
+			return err
 		}
 	}
-	return
+
+	return nil
 }
 
 func (h *Hub) deleteNodeDB() error {
@@ -93,13 +106,13 @@ func (h *Hub) deleteNodeDB() error {
 
 func checkName(name string) error {
 	if len(name) == 0 {
-		return errs.ERR_HUB_NAME_ISEMPTY
+		return errs.ErrHubNameIsempty
 	}
 	if len([]rune(name)) > 100 {
-		return errs.ERR_HUB_NAME_OVER100
+		return errs.ErrHubNameOver100
 	}
 	if !cmn.NameMatchedPattern(name) {
-		return errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN
+		return errs.ErrHubNameNotMatchedPattern
 	}
 	return nil
 }

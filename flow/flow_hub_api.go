@@ -8,7 +8,7 @@ import (
 func (m *Flow) NewHub(name string) (h *hub.Hub, err error) {
 
 	if m.GetHub(name) != nil {
-		err = errs.ERR_HUB_IS_ALREADY_EXISTS
+		err = errs.ErrHubIsAlreadyExists
 		return
 	}
 
@@ -40,11 +40,11 @@ func (m *Flow) GetAllHubs() []*hub.Hub {
 func (m *Flow) AddNodeToHub(hubName, nodeName string) error {
 	h := m.GetHub(hubName)
 	if h == nil {
-		return errs.ERR_HUB_NOT_FOUND
+		return errs.ErrHubNotFound
 	}
 	n := m.GetNode(nodeName)
 	if n == nil {
-		return errs.ERR_NODE_NOT_FOUND
+		return errs.ErrNodeNotFound
 	}
 	h.AddNode(n)
 	return nil
@@ -53,11 +53,11 @@ func (m *Flow) AddNodeToHub(hubName, nodeName string) error {
 func (m *Flow) DeleteNodeFromHub(hubName, nodeName string) error {
 	h := m.GetHub(hubName)
 	if h == nil {
-		return errs.ERR_HUB_NOT_FOUND
+		return errs.ErrHubNotFound
 	}
 	n := m.GetNode(nodeName)
 	if n == nil {
-		return errs.ERR_NODE_NOT_FOUND
+		return errs.ErrNodeNotFound
 	}
 	h.DeleteNode(n)
 	return nil

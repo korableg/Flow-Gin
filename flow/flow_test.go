@@ -24,7 +24,7 @@ func TestFlow(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = m.NewHub("testHub")
-	if err != errs.ERR_HUB_IS_ALREADY_EXISTS {
+	if err != errs.ErrHubIsAlreadyExists {
 		t.Error(err)
 	}
 
@@ -113,22 +113,22 @@ func TestFlow(t *testing.T) {
 	fmt.Printf("msgs received %d\n", len(mReceived))
 
 	err = m.AddNodeToHub(hub.Name(), "NodeNotFound")
-	if err != errs.ERR_NODE_NOT_FOUND {
+	if err != errs.ErrNodeNotFound {
 		t.Error("must be error ERR_NODE_NOT_FOUND")
 	}
 
 	err = m.AddNodeToHub("HubNotFound", nodeConsumer.Name())
-	if err != errs.ERR_HUB_NOT_FOUND {
+	if err != errs.ErrHubNotFound {
 		t.Error("must be error ERR_HUB_NOT_FOUND")
 	}
 
 	err = m.DeleteNodeFromHub(hub.Name(), "NodeNotFound")
-	if err != errs.ERR_NODE_NOT_FOUND {
+	if err != errs.ErrNodeNotFound {
 		t.Error("must be error ERR_NODE_NOT_FOUND")
 	}
 
 	err = m.DeleteNodeFromHub("HubNotFound", nodeConsumer.Name())
-	if err != errs.ERR_HUB_NOT_FOUND {
+	if err != errs.ErrHubNotFound {
 		t.Error("must be error ERR_HUB_NOT_FOUND")
 	}
 

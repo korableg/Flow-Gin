@@ -21,9 +21,6 @@ func New(name string, careful bool, db repo.DB) (n *Node, err error) {
 	var mqdb repo.MQDB
 	if db != nil {
 		mqdb = db.NewMQRepository(name)
-		if err != nil {
-			return
-		}
 	}
 
 	messages, err := msgs.NewMessageQueue(mqdb, careful)
@@ -79,13 +76,13 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 
 func checkName(name string) error {
 	if len(name) == 0 {
-		return errs.ERR_NODE_NAME_ISEMPTY
+		return errs.ErrNodeNameIsempty
 	}
 	if len([]rune(name)) > 100 {
-		return errs.ERR_NODE_NAME_OVER100
+		return errs.ErrNodeNameOver100
 	}
 	if !cmn.NameMatchedPattern(name) {
-		return errs.ERR_NODE_NAME_NOT_MATCHED_PATTERN
+		return errs.ErrNodeNameNotMatchedPattern
 	}
 	return nil
 }

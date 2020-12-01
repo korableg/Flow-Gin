@@ -7,8 +7,8 @@ import (
 )
 
 type Flow struct {
-	nodes *node.NodeRepository
-	hubs  *hub.HubRepository
+	nodes *node.Repository
+	hubs  *hub.Repository
 	db    repo.DB
 }
 

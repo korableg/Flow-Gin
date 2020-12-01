@@ -14,15 +14,15 @@ func TestNode(t *testing.T) {
 
 	nameNode := "TestNode1"
 	_, err := New("   ", true, nil)
-	if err != errs.ERR_NODE_NAME_NOT_MATCHED_PATTERN {
+	if err != errs.ErrNodeNameNotMatchedPattern {
 		t.Error(err)
 	}
 	_, err = New("", false, db)
-	if err != errs.ERR_NODE_NAME_ISEMPTY {
+	if err != errs.ErrNodeNameIsempty {
 		t.Error(err)
 	}
 	_, err = New("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", true, db)
-	if err != errs.ERR_NODE_NAME_OVER100 {
+	if err != errs.ErrNodeNameOver100 {
 		t.Error(err)
 	}
 	n, err := New(nameNode, false, db)
@@ -37,10 +37,15 @@ func TestNode(t *testing.T) {
 	}
 
 	for n.Len() > 0 {
-		n.RemoveFrontMessage()
+		if err := n.RemoveFrontMessage(); err != nil {
+			t.Error(err)
+		}
 	}
 
-	n.PushMessage(msgs.NewMessage("TestNode2", nil))
+	err = n.PushMessage(msgs.NewMessage("TestNode2", nil))
+	if err != nil {
+		t.Error(err)
+	}
 
 	if n.Len() != 1 {
 		t.Error("count messages must be 1")
@@ -50,7 +55,10 @@ func TestNode(t *testing.T) {
 	if m == nil {
 		t.Error("front message must be not nil")
 	}
-	n.RemoveFrontMessage()
+	err = n.RemoveFrontMessage()
+	if err != nil {
+		t.Error(err)
+	}
 
 	if n.Len() != 0 {
 		t.Error("count messages must be 0")

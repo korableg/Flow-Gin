@@ -9,11 +9,11 @@ func (m *Flow) SendMessage(from, to string, data []byte) (*msgs.Message, error) 
 
 	h := m.GetHub(to)
 	if h == nil {
-		return nil, errs.ERR_HUB_NOT_FOUND
+		return nil, errs.ErrHubNotFound
 	}
 	n := m.GetNode(from)
 	if n == nil {
-		return nil, errs.ERR_NODE_NOT_FOUND
+		return nil, errs.ErrNodeNotFound
 	}
 	mes := msgs.NewMessage(n.Name(), data)
 	h.PushMessage(mes)
@@ -24,7 +24,7 @@ func (m *Flow) SendMessage(from, to string, data []byte) (*msgs.Message, error) 
 func (m *Flow) GetMessage(nodeName string) (*msgs.Message, error) {
 	n := m.GetNode(nodeName)
 	if n == nil {
-		return nil, errs.ERR_NODE_NOT_FOUND
+		return nil, errs.ErrNodeNotFound
 	}
 	return n.FrontMessage(), nil
 }
@@ -32,7 +32,7 @@ func (m *Flow) GetMessage(nodeName string) (*msgs.Message, error) {
 func (m *Flow) RemoveMessage(nodeName string) error {
 	n := m.GetNode(nodeName)
 	if n == nil {
-		return errs.ERR_NODE_NOT_FOUND
+		return errs.ErrNodeNotFound
 	}
 	return n.RemoveFrontMessage()
 }

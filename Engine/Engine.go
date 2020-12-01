@@ -69,7 +69,7 @@ func defaultHeaders() gin.HandlerFunc {
 }
 
 func pageNotFound(c *gin.Context) {
-	c.JSON(http.StatusNotFound, errs.New(errs.ERR_PAGE_NOT_FOUND))
+	c.JSON(http.StatusNotFound, errs.New(errs.ErrPageNotFound))
 }
 
 func methodNotAllowed(c *gin.Context) {

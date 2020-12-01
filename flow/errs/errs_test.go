@@ -7,10 +7,10 @@ import (
 
 func TestErrs(t *testing.T) {
 
-	e := New(ERR_NODE_NOT_FOUND)
+	e := New(ErrNodeNotFound)
 
-	if ERR_NODE_NOT_FOUND.Error() != e.Error() {
-		t.Errorf("error must be %s", ERR_NODE_NOT_FOUND.Error())
+	if ErrNodeNotFound.Error() != e.Error() {
+		t.Errorf("error must be %s", ErrNodeNotFound.Error())
 	}
 
 	_, err := json.Marshal(e)

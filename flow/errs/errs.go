@@ -5,19 +5,17 @@ import (
 	"errors"
 )
 
-var (
-	ERR_HUB_NAME_ISEMPTY              = errors.New("hub name is empty")
-	ERR_HUB_NAME_OVER100              = errors.New("hub name over 100 symbols")
-	ERR_HUB_IS_ALREADY_EXISTS         = errors.New("hub is already exists")
-	ERR_HUB_NAME_NOT_MATCHED_PATTERN  = errors.New("the hub name should be contain only letters, digits, ., -, _")
-	ERR_HUB_NOT_FOUND                 = errors.New("hub not found")
-	ERR_NODE_NAME_ISEMPTY             = errors.New("node name is empty")
-	ERR_NODE_NAME_OVER100             = errors.New("node name over 100 symbols")
-	ERR_NODE_NOT_FOUND                = errors.New("node not found")
-	ERR_NODE_IS_ALREADY_EXISTS        = errors.New("node is already exists")
-	ERR_NODE_NAME_NOT_MATCHED_PATTERN = errors.New("the node name should be contain only letters, digits, ., -, _")
-	ERR_PAGE_NOT_FOUND                = errors.New("page not found")
-)
+var ErrHubNameIsempty = errors.New("hub name is empty")
+var ErrHubNameOver100 = errors.New("hub name over 100 symbols")
+var ErrHubIsAlreadyExists = errors.New("hub is already exists")
+var ErrHubNameNotMatchedPattern = errors.New("the hub name should be contain only letters, digits, ., -, _")
+var ErrHubNotFound = errors.New("hub not found")
+var ErrNodeNameIsempty = errors.New("node name is empty")
+var ErrNodeNameOver100 = errors.New("node name over 100 symbols")
+var ErrNodeNotFound = errors.New("node not found")
+var ErrNodeIsAlreadyExists = errors.New("node is already exists")
+var ErrNodeNameNotMatchedPattern = errors.New("the node name should be contain only letters, digits, ., -, _")
+var ErrPageNotFound = errors.New("page not found")
 
 type Error struct {
 	error string

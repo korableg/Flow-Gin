@@ -36,7 +36,9 @@ func NewMessageQueue(db repo.MQDB, careful bool) (*MessageQueue, error) {
 			message.id = messageRepo.ID
 			message.data = messageRepo.Data
 			message.from = messageRepo.From
-			mq.Push(message)
+			if err := mq.Push(message); err != nil {
+				return nil, err
+			}
 		}
 	}
 

@@ -24,10 +24,19 @@ func TestMsgs(t *testing.T) {
 		t.Fatal(err)
 	}
 	for mq.Len() > 0 {
-		mq.RemoveFront()
+		err = mq.RemoveFront()
+		if err != nil {
+			t.Error(err)
+		}
 	}
-	mq.Push(mes)
-	mq.Push(NewMessage(wantFrom, nil))
+	err = mq.Push(mes)
+	if err != nil {
+		t.Error(err)
+	}
+	err = mq.Push(NewMessage(wantFrom, nil))
+	if err != nil {
+		t.Error(err)
+	}
 	if mq.Len() != 2 {
 		t.Error("length message queue must be 2")
 	}
@@ -36,13 +45,19 @@ func TestMsgs(t *testing.T) {
 	if !bytes.Equal(wantData, gotData) {
 		t.Error("want data != got data")
 	}
-	mq.RemoveFront()
+	err = mq.RemoveFront()
+	if err != nil {
+		t.Error(err)
+	}
 	mes = mq.Front()
 	gotData = mes.Data()
 	if nil != gotData {
 		t.Error("want data != got data")
 	}
-	mq.RemoveFront()
+	err = mq.RemoveFront()
+	if err != nil {
+		t.Error(err)
+	}
 	if mq.Len() != 0 {
 		t.Error("length message queue must be 0")
 	}
@@ -53,13 +68,19 @@ func TestMsgs(t *testing.T) {
 		t.Error("mq must be not careful")
 	}
 
-	mq.Push(mes)
+	err = mq.Push(mes)
+	if err != nil {
+		t.Error(err)
+	}
 
 	err = mq.DeleteDB()
 	if err != nil {
 		t.Error(err)
 	}
 
-	mq.Close()
+	err = mq.Close()
+	if err != nil {
+		t.Error(err)
+	}
 
 }

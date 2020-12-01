@@ -5,14 +5,14 @@ import (
 	"sync"
 )
 
-type NodeRepository struct {
+type Repository struct {
 	nodes *sync.Map
 	db    repo.NodeDB
 }
 
-func NewNodeRepository(db repo.NodeDB, nodeTmplts ...*NodeRepository) *NodeRepository {
+func NewNodeRepository(db repo.NodeDB, nodeTmplts ...*Repository) *Repository {
 
-	nr := new(NodeRepository)
+	nr := new(Repository)
 	nr.nodes = new(sync.Map)
 	nr.db = db
 
@@ -20,7 +20,7 @@ func NewNodeRepository(db repo.NodeDB, nodeTmplts ...*NodeRepository) *NodeRepos
 		return nr
 	}
 
-	var nodesTmplt *NodeRepository
+	var nodesTmplt *Repository
 	if nodeTmplts != nil && len(nodeTmplts) > 0 {
 		nodesTmplt = nodeTmplts[0]
 	}
@@ -47,7 +47,7 @@ func NewNodeRepository(db repo.NodeDB, nodeTmplts ...*NodeRepository) *NodeRepos
 	return nr
 }
 
-func (nr *NodeRepository) Store(node *Node) error {
+func (nr *Repository) Store(node *Node) error {
 	if nr.db != nil {
 		nodeRepo := new(repo.Node)
 		nodeRepo.Name = node.Name()
@@ -60,14 +60,14 @@ func (nr *NodeRepository) Store(node *Node) error {
 	return nil
 }
 
-func (nr *NodeRepository) Load(name string) (*Node, bool) {
+func (nr *Repository) Load(name string) (*Node, bool) {
 	if n, ok := nr.nodes.Load(name); ok {
 		return n.(*Node), ok
 	}
 	return nil, false
 }
 
-func (nr *NodeRepository) Range(f func(node *Node) error) error {
+func (nr *Repository) Range(f func(node *Node) error) error {
 	var err error
 	rangeFunc := func(key, value interface{}) bool {
 		err = f(value.(*Node))
@@ -80,7 +80,7 @@ func (nr *NodeRepository) Range(f func(node *Node) error) error {
 	return err
 }
 
-func (nr *NodeRepository) Delete(name string) error {
+func (nr *Repository) Delete(name string) error {
 	if nr.db != nil {
 		if err := nr.db.Delete(name); err != nil {
 			return err
@@ -90,7 +90,7 @@ func (nr *NodeRepository) Delete(name string) error {
 	return nil
 }
 
-func (nr *NodeRepository) DeleteDB() error {
+func (nr *Repository) DeleteDB() error {
 	if nr.db == nil {
 		return nil
 	}
@@ -102,7 +102,7 @@ func (nr *NodeRepository) DeleteDB() error {
 	return nil
 }
 
-func (nr *NodeRepository) Close() (err error) {
+func (nr *Repository) Close() (err error) {
 	if nr.db == nil {
 		return
 	}
@@ -113,12 +113,12 @@ func (nr *NodeRepository) Close() (err error) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			n.messages.Close()
+			_ = n.messages.Close() // the error isn't handle
 		}()
 		return nil
 	}
 
-	nr.Range(f)
+	_ = nr.Range(f) // the error isn't handle because it always nil
 
 	err = nr.db.Close()
 

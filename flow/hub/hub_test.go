@@ -17,15 +17,15 @@ func TestHub(t *testing.T) {
 	db := new(MockDB.MockDB)
 
 	_, err := New("   ", nil)
-	if err != errs.ERR_HUB_NAME_NOT_MATCHED_PATTERN {
+	if err != errs.ErrHubNameNotMatchedPattern {
 		t.Error(err)
 	}
 	_, err = New("", nil)
-	if err != errs.ERR_HUB_NAME_ISEMPTY {
+	if err != errs.ErrHubNameIsempty {
 		t.Error(err)
 	}
 	_, err = New("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", nil)
-	if err != errs.ERR_HUB_NAME_OVER100 {
+	if err != errs.ErrHubNameOver100 {
 		t.Error(err)
 	}
 	hub, err := New(nameHub, db)
@@ -46,9 +46,21 @@ func TestHub(t *testing.T) {
 		t.Error(err)
 	}
 
-	hub.PushMessage(msgs.NewMessage(nameNode, nil))
+	err = hub.PushMessage(msgs.NewMessage(nameNode, nil))
+	if err != nil {
+		t.Error(err)
+	}
 
 	_, err = json.Marshal(hub)
+
+	nodes, err := hub.getSliceOfNodes()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if nodes == nil || len(nodes) == 0 {
+		t.Error("slice of nodes is empty")
+	}
 
 	err = hub.DeleteNode(n)
 	if err != nil {

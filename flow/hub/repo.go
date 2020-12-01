@@ -6,14 +6,14 @@ import (
 	"sync"
 )
 
-type HubRepository struct {
+type Repository struct {
 	hubs *sync.Map
 	db   repo.HubDB
 }
 
-func NewHubRepository(db repo.DB, nodes *node.NodeRepository) *HubRepository {
+func NewHubRepository(db repo.DB, nodes *node.Repository) *Repository {
 
-	hr := new(HubRepository)
+	hr := new(Repository)
 	hr.hubs = new(sync.Map)
 
 	if db == nil {
@@ -36,7 +36,7 @@ func NewHubRepository(db repo.DB, nodes *node.NodeRepository) *HubRepository {
 	return hr
 }
 
-func (hr *HubRepository) Store(hub *Hub) error {
+func (hr *Repository) Store(hub *Hub) error {
 	if hr.db != nil {
 		hubRepo := new(repo.Hub)
 		hubRepo.Name = hub.Name()
@@ -48,14 +48,14 @@ func (hr *HubRepository) Store(hub *Hub) error {
 	return nil
 }
 
-func (hr *HubRepository) Load(name string) (*Hub, bool) {
-	if node, ok := hr.hubs.Load(name); ok {
-		return node.(*Hub), ok
+func (hr *Repository) Load(name string) (*Hub, bool) {
+	if n, ok := hr.hubs.Load(name); ok {
+		return n.(*Hub), ok
 	}
 	return nil, false
 }
 
-func (hr *HubRepository) Range(f func(hub *Hub) error) error {
+func (hr *Repository) Range(f func(hub *Hub) error) error {
 	var err error
 	rangeFunc := func(key, value interface{}) bool {
 		err = f(value.(*Hub))
@@ -68,7 +68,7 @@ func (hr *HubRepository) Range(f func(hub *Hub) error) error {
 	return err
 }
 
-func (hr *HubRepository) Delete(name string) (err error) {
+func (hr *Repository) Delete(name string) (err error) {
 
 	if hub, ok := hr.Load(name); ok {
 		if err = hub.deleteNodeDB(); err != nil {
@@ -85,7 +85,7 @@ func (hr *HubRepository) Delete(name string) (err error) {
 
 }
 
-func (hr *HubRepository) Close() error {
+func (hr *Repository) Close() error {
 	if hr.db == nil {
 		return nil
 	}
