@@ -6,20 +6,22 @@ import (
 	"github.com/korableg/mini-gin/flow/node"
 )
 
-func (m *Flow) NewNode(name string, careful bool) (n *node.Node, err error) {
+func (m *Flow) NewNode(name string, careful bool) (*node.Node, error) {
 
 	if nodeExists := m.GetNode(name); nodeExists != nil {
-		err = errs.ErrNodeIsAlreadyExists
-		return
+		return nil, errs.ErrNodeIsAlreadyExists
 	}
 
-	n, err = node.New(name, careful, m.db)
+	n, err := node.New(name, careful, m.db)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	m.nodes.Store(n)
-	return
+	if err := m.nodes.Store(n); err != nil {
+		return nil, err
+	}
+
+	return n, nil
 
 }
 
@@ -30,24 +32,26 @@ func (m *Flow) GetNode(name string) (n *node.Node) {
 	return
 }
 
-func (m *Flow) GetAllNodes() []*node.Node {
+func (m *Flow) GetAllNodes() ([]*node.Node, error) {
 	nodes := make([]*node.Node, 0, 20)
 	f := func(value *node.Node) error { nodes = append(nodes, value); return nil }
-	m.nodes.Range(f)
-	return nodes
+	if err := m.nodes.Range(f); err != nil {
+		return nil, err
+	}
+	return nodes, nil
 }
 
 func (m *Flow) DeleteNode(name string) error {
-	node := m.GetNode(name)
-	if node == nil {
+	n := m.GetNode(name)
+	if n == nil {
 		return nil
 	}
-	err := node.DeleteMessageDB()
+	err := n.DeleteMessageDB()
 	if err != nil {
 		return err
 	}
 	f := func(hub *hub.Hub) error {
-		return hub.DeleteNode(node)
+		return hub.DeleteNode(n)
 	}
 	err = m.hubs.Range(f)
 	if err != nil {

@@ -1,2 +1,5 @@
 address: :1211
 debug: true
+dbprovider: leveldb
+leveldb:
+  path: .

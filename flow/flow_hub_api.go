@@ -25,42 +25,51 @@ func (m *Flow) GetHub(name string) (h *hub.Hub) {
 	return
 }
 
-func (m *Flow) GetAllHubs() []*hub.Hub {
+func (m *Flow) GetAllHubs() ([]*hub.Hub, error) {
+
 	hubs := make([]*hub.Hub, 0, 20)
 
 	f := func(hub *hub.Hub) error {
 		hubs = append(hubs, hub)
 		return nil
 	}
-	m.hubs.Range(f)
+	if err := m.hubs.Range(f); err != nil {
+		return nil, err
+	}
 
-	return hubs
+	return hubs, nil
 }
 
 func (m *Flow) AddNodeToHub(hubName, nodeName string) error {
+
 	h := m.GetHub(hubName)
 	if h == nil {
 		return errs.ErrHubNotFound
 	}
+
 	n := m.GetNode(nodeName)
 	if n == nil {
 		return errs.ErrNodeNotFound
 	}
-	h.AddNode(n)
-	return nil
+
+	return h.AddNode(n)
+
 }
 
 func (m *Flow) DeleteNodeFromHub(hubName, nodeName string) error {
+
 	h := m.GetHub(hubName)
 	if h == nil {
 		return errs.ErrHubNotFound
 	}
+
 	n := m.GetNode(nodeName)
 	if n == nil {
 		return errs.ErrNodeNotFound
 	}
-	h.DeleteNode(n)
-	return nil
+
+	return h.DeleteNode(n)
+
 }
 
 func (m *Flow) DeleteHub(name string) error {

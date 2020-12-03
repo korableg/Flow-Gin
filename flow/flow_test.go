@@ -51,13 +51,19 @@ func TestFlow(t *testing.T) {
 		t.Error("message queue len error")
 	}
 	for nodeConsumer.Len() > 0 {
-		nodeConsumer.RemoveFrontMessage()
+		err := nodeConsumer.RemoveFrontMessage()
+		if err != nil {
+			t.Error(err)
+		}
 	}
 	nodesCount := rand.Intn(100) + 1
 
 	for i := 0; i < nodesCount; i++ {
 		n, _ := m.NewNode("testNode"+strconv.Itoa(i), true)
-		m.AddNodeToHub(hub.Name(), n.Name())
+		err := m.AddNodeToHub(hub.Name(), n.Name())
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	messageCount := rand.Intn(100) + 1
@@ -83,7 +89,10 @@ func TestFlow(t *testing.T) {
 			mes, _ := m.GetMessage(nodeConsumer.Name())
 			if mes != nil {
 				mReceived[i] = mes
-				m.RemoveMessage(nodeConsumer.Name())
+				err := m.RemoveMessage(nodeConsumer.Name())
+				if err != nil {
+					t.Error(err)
+				}
 				i++
 			} else {
 				time.Sleep(time.Millisecond * 500)
@@ -142,7 +151,10 @@ func TestFlow(t *testing.T) {
 		t.Error(err)
 	}
 
-	hubs := m.GetAllHubs()
+	hubs, err := m.GetAllHubs()
+	if err != nil {
+		t.Error(err)
+	}
 	if len(hubs) != 2 {
 		t.Errorf("hubs len have %d, must 2", len(hubs))
 	}

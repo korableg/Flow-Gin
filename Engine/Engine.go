@@ -8,6 +8,7 @@ import (
 	fl "github.com/korableg/mini-gin/flow"
 	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/flow/leveldb"
+	"github.com/korableg/mini-gin/flow/repo"
 	"net/http"
 	"strconv"
 )
@@ -21,6 +22,12 @@ func init() {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
+	}
+
+	var db repo.DB
+	switch Config.DBProvider() {
+	case "leveldb":
+		db = leveldb.New(Config.LevelDB().Path)
 	}
 
 	engine = gin.New()
@@ -44,8 +51,7 @@ func init() {
 	engine.GET("/message/:name", getMessage)
 	engine.DELETE("/message/:name", deleteMessage)
 
-	factory := leveldb.New(".")
-	flow = fl.New(factory)
+	flow = fl.New(db)
 
 }
 
@@ -58,8 +64,8 @@ func Run() {
 	}()
 }
 
-func Close() {
-	flow.Close()
+func Close() error {
+	return flow.Close()
 }
 
 func defaultHeaders() gin.HandlerFunc {
@@ -77,7 +83,12 @@ func methodNotAllowed(c *gin.Context) {
 }
 
 func getAllNodes(c *gin.Context) {
-	c.JSON(http.StatusOK, flow.GetAllNodes())
+	nodes, err := flow.GetAllNodes()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errs.New(err))
+		return
+	}
+	c.JSON(http.StatusOK, nodes)
 }
 
 func getNode(c *gin.Context) {
@@ -100,14 +111,22 @@ func newNode(c *gin.Context) {
 func deleteNode(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	flow.DeleteNode(name)
+	if err := flow.DeleteNode(name); err != nil {
+		c.JSON(http.StatusInternalServerError, errs.New(err))
+		return
+	}
 
 	c.Status(http.StatusOK)
 
 }
 
 func getAllHubs(c *gin.Context) {
-	c.JSON(http.StatusOK, flow.GetAllHubs())
+	hubs, err := flow.GetAllHubs()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errs.New(err))
+		return
+	}
+	c.JSON(http.StatusOK, hubs)
 }
 
 func getHub(c *gin.Context) {
@@ -153,7 +172,10 @@ func patchHub(c *gin.Context) {
 func deleteHub(c *gin.Context) {
 
 	name := c.Params.ByName("name")
-	flow.DeleteHub(name)
+	if err := flow.DeleteHub(name); err != nil {
+		c.JSON(http.StatusInternalServerError, errs.New(err))
+		return
+	}
 
 	c.Status(http.StatusOK)
 

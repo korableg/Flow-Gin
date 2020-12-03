@@ -13,9 +13,15 @@ func init() {
 	instance = getConfig()
 }
 
+type LevelDBConfig struct {
+	Path string
+}
+
 type Config struct {
-	Address string
-	Debug   bool
+	Address    string
+	Debug      bool
+	DBProvider string
+	LevelDB    *LevelDBConfig
 }
 
 func Address() string {
@@ -24,6 +30,14 @@ func Address() string {
 
 func Debug() bool {
 	return instance.Debug
+}
+
+func DBProvider() string {
+	return instance.DBProvider
+}
+
+func LevelDB() *LevelDBConfig {
+	return instance.LevelDB
 }
 
 func Version() string {

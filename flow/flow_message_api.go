@@ -11,12 +11,18 @@ func (m *Flow) SendMessage(from, to string, data []byte) (*msgs.Message, error) 
 	if h == nil {
 		return nil, errs.ErrHubNotFound
 	}
+
 	n := m.GetNode(from)
 	if n == nil {
 		return nil, errs.ErrNodeNotFound
 	}
+
 	mes := msgs.NewMessage(n.Name(), data)
-	h.PushMessage(mes)
+
+	if err := h.PushMessage(mes); err != nil {
+		return nil, err
+	}
+
 	return mes, nil
 
 }
