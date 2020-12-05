@@ -5,7 +5,7 @@ import (
 	"github.com/korableg/mini-gin/flow/msgs"
 )
 
-func (m *Flow) SendMessage(from, to string, data []byte) (*msgs.Message, error) {
+func (m *Flow) SendMessageToHub(from, to string, data []byte) (*msgs.Message, error) {
 
 	h := m.GetHub(to)
 	if h == nil {
@@ -20,6 +20,28 @@ func (m *Flow) SendMessage(from, to string, data []byte) (*msgs.Message, error) 
 	mes := msgs.NewMessage(n.Name(), data)
 
 	if err := h.PushMessage(mes); err != nil {
+		return nil, err
+	}
+
+	return mes, nil
+
+}
+
+func (m *Flow) SendMessageToNode(from, to string, data []byte) (*msgs.Message, error) {
+
+	nodeTo := m.GetNode(to)
+	if nodeTo == nil {
+		return nil, errs.ErrNodeNotFound
+	}
+
+	nodeFrom := m.GetNode(from)
+	if nodeFrom == nil {
+		return nil, errs.ErrNodeNotFound
+	}
+
+	mes := msgs.NewMessage(nodeFrom.Name(), data)
+
+	if err := nodeTo.PushMessage(mes); err != nil {
 		return nil, err
 	}
 

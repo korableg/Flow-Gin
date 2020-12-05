@@ -53,15 +53,6 @@ func TestHub(t *testing.T) {
 
 	_, err = json.Marshal(hub)
 
-	nodes, err := hub.getSliceOfNodes()
-	if err != nil {
-		t.Error(err)
-	}
-
-	if nodes == nil || len(nodes) == 0 {
-		t.Error("slice of nodes is empty")
-	}
-
 	err = hub.DeleteNode(n)
 	if err != nil {
 		t.Error(err)

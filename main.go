@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/korableg/mini-gin/Engine"
+	"github.com/korableg/mini-gin/engine"
 	"log"
 	"os"
 	"os/signal"
@@ -10,7 +10,7 @@ import (
 
 func shutdown() {
 	log.Println("Shutting down Flow...")
-	Engine.Close()
+	engine.Close()
 }
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 
 	defer shutdown()
 
-	Engine.Run()
+	engine.Run()
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)

@@ -54,10 +54,7 @@ func (h *Hub) PushMessage(m *msgs.Message) error {
 
 func (h *Hub) MarshalJSON() ([]byte, error) {
 
-	nodes, err := h.getSliceOfNodes()
-	if err != nil {
-		return nil, err
-	}
+	nodes := h.nodes.Slice()
 
 	hubMap := make(map[string]interface{})
 	hubMap["name"] = h.name
@@ -67,35 +64,13 @@ func (h *Hub) MarshalJSON() ([]byte, error) {
 
 }
 
-func (h *Hub) getSliceOfNodes() ([]*node.Node, error) {
-
-	nodes := make([]*node.Node, 0, 20)
-
-	f := func(n *node.Node) error {
-		nodes = append(nodes, n)
-		return nil
-	}
-	if err := h.nodes.Range(f); err != nil {
-		return nil, err
-	}
-
-	return nodes, nil
-
-}
-
 func (h *Hub) deleteAllNodes() error {
-
-	nodes, err := h.getSliceOfNodes()
-	if err != nil {
-		return err
-	}
-
+	nodes := h.nodes.Slice()
 	for _, n := range nodes {
 		if err := h.DeleteNode(n); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

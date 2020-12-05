@@ -1,10 +1,10 @@
-package Engine
+package engine
 
 import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/korableg/mini-gin/Config"
+	"github.com/korableg/mini-gin/config"
 	fl "github.com/korableg/mini-gin/flow"
 	"github.com/korableg/mini-gin/flow/errs"
 	"github.com/korableg/mini-gin/flow/leveldb"
@@ -18,16 +18,16 @@ var flow *fl.Flow
 
 func init() {
 
-	if Config.Debug() {
+	if config.Debug() {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	var db repo.DB
-	switch Config.DBProvider() {
+	switch config.DBProvider() {
 	case "leveldb":
-		db = leveldb.New(Config.LevelDB().Path)
+		db = leveldb.New(config.LevelDB().Path)
 	}
 
 	engine = gin.New()
@@ -47,7 +47,8 @@ func init() {
 	engine.PATCH("/hub/:action/:nameHub/:nameNode", patchHub)
 	engine.DELETE("/hub/:name", deleteHub)
 
-	engine.POST("/message/:nameNode/:nameHub", sendMessage)
+	engine.POST("/message/tohub/:nodeFrom/:hubTo", sendMessageToHub)
+	engine.POST("/message/tonode/:nodeFrom/:nodeTo", sendMessageToNode)
 	engine.GET("/message/:name", getMessage)
 	engine.DELETE("/message/:name", deleteMessage)
 
@@ -57,7 +58,7 @@ func init() {
 
 func Run() {
 	go func() {
-		err := engine.Run(Config.Address())
+		err := engine.Run(config.Address())
 		if err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -70,7 +71,7 @@ func Close() error {
 
 func defaultHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Server", fmt.Sprintf("Flow:%s", Config.Version()))
+		c.Header("Server", fmt.Sprintf("Flow:%s", config.Version()))
 	}
 }
 
@@ -83,11 +84,7 @@ func methodNotAllowed(c *gin.Context) {
 }
 
 func getAllNodes(c *gin.Context) {
-	nodes, err := flow.GetAllNodes()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.New(err))
-		return
-	}
+	nodes := flow.GetAllNodes()
 	c.JSON(http.StatusOK, nodes)
 }
 
@@ -121,11 +118,7 @@ func deleteNode(c *gin.Context) {
 }
 
 func getAllHubs(c *gin.Context) {
-	hubs, err := flow.GetAllHubs()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, errs.New(err))
-		return
-	}
+	hubs := flow.GetAllHubs()
 	c.JSON(http.StatusOK, hubs)
 }
 
@@ -181,10 +174,10 @@ func deleteHub(c *gin.Context) {
 
 }
 
-func sendMessage(c *gin.Context) {
+func sendMessageToHub(c *gin.Context) {
 
-	nameNode := c.Params.ByName("nameNode")
-	nameHub := c.Params.ByName("nameHub")
+	nodeFrom := c.Params.ByName("nodeFrom")
+	hubTo := c.Params.ByName("hubTo")
 
 	data, err := c.GetRawData()
 	if err != nil {
@@ -192,7 +185,26 @@ func sendMessage(c *gin.Context) {
 		return
 	}
 
-	_, err = flow.SendMessage(nameNode, nameHub, data)
+	_, err = flow.SendMessageToHub(nodeFrom, hubTo, data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errs.New(err))
+	}
+	c.Status(http.StatusOK)
+
+}
+
+func sendMessageToNode(c *gin.Context) {
+
+	nodeFrom := c.Params.ByName("nodeFrom")
+	nodeTo := c.Params.ByName("nodeTo")
+
+	data, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errs.New(err))
+		return
+	}
+
+	_, err = flow.SendMessageToNode(nodeFrom, nodeTo, data)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errs.New(err))
 	}

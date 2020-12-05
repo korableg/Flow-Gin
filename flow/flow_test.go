@@ -36,6 +36,18 @@ func TestFlow(t *testing.T) {
 
 	nodeProducer, _ := m.NewNode("node_producer", true)
 	nodeConsumer, _ := m.NewNode("node_consumer", true)
+	nodeConsumerDirectly, _ := m.NewNode("node_consumer_directly", true)
+
+	for nodeConsumerDirectly.Len() > 0 {
+		if err := nodeConsumerDirectly.RemoveFrontMessage(); err != nil {
+			t.Error(err)
+		}
+	}
+
+	_, err = m.SendMessageToNode("node_producer", "node_consumer_directly", nil)
+	if err != nil {
+		t.Error(err)
+	}
 
 	err = m.AddNodeToHub(hub.Name(), nodeConsumer.Name())
 	if err != nil {
@@ -77,7 +89,7 @@ func TestFlow(t *testing.T) {
 		for i := 0; i < messageCount; i++ {
 			data := make([]byte, rand.Intn(1024*1024*10))
 			rand.Read(data)
-			mes, _ := m.SendMessage(nodeProducer.Name(), hub.Name(), data)
+			mes, _ := m.SendMessageToHub(nodeProducer.Name(), hub.Name(), data)
 			mSent = append(mSent, mes)
 		}
 		out <- 1
@@ -151,15 +163,15 @@ func TestFlow(t *testing.T) {
 		t.Error(err)
 	}
 
-	hubs, err := m.GetAllHubs()
-	if err != nil {
-		t.Error(err)
-	}
+	hubs := m.GetAllHubs()
 	if len(hubs) != 2 {
 		t.Errorf("hubs len have %d, must 2", len(hubs))
 	}
 
 	err = m.DeleteHub(hub.Name())
+	if err != nil {
+		t.Error(err)
+	}
 
 	err = m.Close()
 	if err != nil {

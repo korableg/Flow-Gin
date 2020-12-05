@@ -25,19 +25,8 @@ func (m *Flow) GetHub(name string) (h *hub.Hub) {
 	return
 }
 
-func (m *Flow) GetAllHubs() ([]*hub.Hub, error) {
-
-	hubs := make([]*hub.Hub, 0, 20)
-
-	f := func(hub *hub.Hub) error {
-		hubs = append(hubs, hub)
-		return nil
-	}
-	if err := m.hubs.Range(f); err != nil {
-		return nil, err
-	}
-
-	return hubs, nil
+func (m *Flow) GetAllHubs() []*hub.Hub {
+	return m.hubs.Slice()
 }
 
 func (m *Flow) AddNodeToHub(hubName, nodeName string) error {

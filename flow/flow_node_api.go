@@ -32,13 +32,8 @@ func (m *Flow) GetNode(name string) (n *node.Node) {
 	return
 }
 
-func (m *Flow) GetAllNodes() ([]*node.Node, error) {
-	nodes := make([]*node.Node, 0, 20)
-	f := func(value *node.Node) error { nodes = append(nodes, value); return nil }
-	if err := m.nodes.Range(f); err != nil {
-		return nil, err
-	}
-	return nodes, nil
+func (m *Flow) GetAllNodes() []*node.Node {
+	return m.nodes.Slice()
 }
 
 func (m *Flow) DeleteNode(name string) error {

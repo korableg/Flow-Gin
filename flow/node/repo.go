@@ -67,6 +67,13 @@ func (nr *Repository) Load(name string) (*Node, bool) {
 	return nil, false
 }
 
+func (nr *Repository) Slice() []*Node {
+	nodes := make([]*Node, 0, 20)
+	f := func(value *Node) error { nodes = append(nodes, value); return nil }
+	_ = nr.Range(f)
+	return nodes
+}
+
 func (nr *Repository) Range(f func(node *Node) error) error {
 	var err error
 	rangeFunc := func(key, value interface{}) bool {

@@ -55,6 +55,13 @@ func (hr *Repository) Load(name string) (*Hub, bool) {
 	return nil, false
 }
 
+func (hr *Repository) Slice() []*Hub {
+	hubs := make([]*Hub, 0, 20)
+	f := func(value *Hub) error { hubs = append(hubs, value); return nil }
+	_ = hr.Range(f)
+	return hubs
+}
+
 func (hr *Repository) Range(f func(hub *Hub) error) error {
 	var err error
 	rangeFunc := func(key, value interface{}) bool {
